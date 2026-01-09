@@ -1,0 +1,2340 @@
+
+--- PAGE 1 ---
+Reconfigurable Earth Observation Satellite Scheduling Problem
+BrycenD.Pearl∗,JosephM.Miller†,andHangWoonLee‡
+WestVirginiaUniversity,Morgantown,WV,26506
+Earthobservationsatellites(EOSs)playapivotalroleincapturingandanalyzingplanetary
+phenomena, ranging from natural disasters to societal development. The EOS scheduling
+problem(EOSSP),whichoptimizesthescheduleofEOSs,isoftensolvedwithrespecttonadir-
+directionalEOSsystems,thusrestrictingtheobservationtimeoftargetsand,consequently,the
+effectivenessofeachEOS.Thispaperleveragesstate-of-the-artconstellationreconfigurabilityto
+developthereconfigurableEOSschedulingproblem(REOSSP),whereinEOSsareassumedto
+bemaneuverable,formingamoreoptimalconstellationconfigurationatmultipleopportunities
+duringaschedule. Thispaperdevelopsanovelmixed-integerlinearprogrammingformulation
+fortheREOSSPtooptimallysolvetheschedulingproblemforgivenparameters. Additionally,
+since the REOSSP can be computationally expensive for large-scale problems, a rolling
+horizonprocedure(RHP)solutionmethodisdeveloped. TheperformanceoftheREOSSPis
+benchmarkedagainsttheEOSSP,whichservesasabaseline,throughasetofrandominstances
+whereproblemcharacteristicsarevariedandacasestudyinwhichHurricaneSandyisusedto
+demonstraterealisticperformance. Theseexperimentsdemonstratethevalueofconstellation
+reconfigurabilityinitsapplicationtotheEOSSP,yieldingsolutionsthatimproveperformance,
+whiletheRHPenhancescomputationalruntimeforlarge-scaleREOSSPinstances.
+Nomenclature
+𝐵 = battery-relatedvalues
+various
+𝐶 = arbitraryweightofdatadownlinkinobjectivefunctions
+𝑐 = costoforbitalmaneuver
+𝑐 = budgetfortotalorbitalmaneuvercosts
+max
+𝐷 = data-relatedvalues
+various
+𝐺 = numberofgroundstations
+ThispaperisasubstantiallyrevisedversionofthepaperAIAA2025-0589,presentedatthe2025AIAASciTechForum,Orlando,FL,January
+6-10,2025.Itoffersnewresults,anadditionalsolutionmethodology,andabetterdescriptionofthematerials.
+∗Ph.D.Student,DepartmentofMechanical,MaterialsandAerospaceEngineering,StudentMemberAIAA.
+†UndergraduateStudent,DepartmentofMechanical,MaterialsandAerospaceEngineering.
+‡Assistant Professor, Department of Mechanical, Materials and Aerospace Engineering; hangwoon.lee@mail.wvu.edu. Member AIAA
+(CorrespondingAuthor).
+5202
+voN
+7
+]CO.htam[
+3v49301.7052:viXra
+--- PAGE 2 ---
+G = setofgroundstations
+𝐻 = binaryvisibilityconditionofthesun
+𝐽 = numberoforbitalslotoptions
+J = setoforbitalslotoptions
+𝐾 = numberofsatellites
+K = setofsatellites
+𝐿 = numberoflookaheadstages
+L = setoflookaheadstages
+𝑃 = numberoftargetsforobservation
+P = setoftargets
+𝑆 = numberofreconfigurationstages
+S = setofreconfigurationstages
+𝑇 = numberoftimesteps
+𝑇 = finitescheduleduration
+𝑟
+T = setoftimesteps
+𝑉 = binaryvisibilityconditionoftargets
+𝑊 = binaryvisibilityconditionofgroundstations
+𝑍 = figureofmerit
+𝑧 = objectivefunctionvalue
+Δ𝑡 = timestepsizebetweendiscretetimesteps
+𝑏 = indicatorvariableofthecurrentbatterystoragelevel
+𝑑 = indicatorvariableofthecurrentdatastoragelevel
+𝑔 = groundstationindex
+ℎ = decisionvariabletocontrolsolarcharging
+𝑖, 𝑗 = orbitalslotoptionindices
+𝑘 = satelliteindex
+ℓ = lookaheadstageindex
+𝑝 = targetindex
+𝑞 = decisionvariabletocontroldatadownlinktogroundstations
+𝑠 = reconfigurationstageindex
+𝑡 = timestepindex
+𝑥 = decisionvariabletocontrolconstellationreconfiguration
+2
+--- PAGE 3 ---
+𝑦 = decisionvariabletocontroltargetobservation
+I.Introduction
+S
+atellitesystemsarecrucialforgatheringinformationonvariousplanetaryphenomenaonEarththroughEarth
+observation(EO),leveragingremotesensingtoprovideobservationsintheformofradiofrequencies,radar,lidar,
+andopticalimaging,amongothermeasurements. EOdatamaybeusedtobenefitstudiesofdirectsocietalactivity,
+suchasinuseobservingagriculturaldroughtprogression[1],providingadditionalsecurityandsituationalawareness
+throughmaritimesurveillance[2],andprovidinginsightintocurrentandpotentialcivilinfrastructuredevelopment[3].
+Additionally,EOdatamaybeusedtoprovidenecessaryinformationregardingnaturalprocesses,suchaswhenutilized
+tomonitorandreportonnaturaldisasters[4]andinusemodelingthepotentialspreadofdiseases[5].
+OptimallycollectingandprovidingEOdatarequiresconsideringtheEarthobservationsatelliteschedulingproblem
+(EOSSP),anoptimizationproblemwhereeachsatellitetaskistreatedasadecisionvariabletomaximizeobservation
+rewards. Typically,formulationsoftheEOSSPincludetheschedulingofobservationtaskstogatherdata,datadownlink
+taskstotransmitdatatogroundstations,andphysicaloroperationalconstraints[6–8]. Animportantconstraintof
+manyEOSSPformulationsistherestrictionofobservationtasksonlytotimeswhentargetsarevisibletosatellites[9],
+definedasthevisibletimewindow(VTW)[10]. Asaresult,theamountofdatacollectedthroughobservationisdirectly
+influencedbytheVTW,furtherunderliningtheVTWasoneofthemostimpactfulaspectsofanyEOSSP.
+TheVTW,andconsequentlythemaximumamountofcollectibledata,aremaintainedasfixedparametersdueto
+theunderlyingassumptionspresentinEOSSPformulations. Twosuchunderlyingassumptionsaretherestrictionof
+thepointingdirectionofsatellites,employingonlynadir-directionalobservationsthatpresentafixedVTW,andthe
+restrictiontoagivenorbitthatisincapableofbeingmanipulated[11]. SuchlimitationsimplythattheVTWisafixed
+parameteroftheEOSSP,thusreducingthepotentialtargetobservationsordatadownlinkthroughtherestrictedVTW
+accesstotargetsandgroundstations(whenconsidered),respectively. Thelimitationscanbealleviatedusingcurrent
+state-of-the-artsatelliteconceptsofoperations(CONOPS),allowingtheVTWtobemanipulatedasanintermediate
+decisionvariable[12].
+Onesuchstate-of-the-artsatelliteCONOPSissatelliteagility,akeyaspectoftheagileEarthobservationsatellite
+schedulingproblem(AEOSSP).Satelliteagilityreferstotheabilityofsatellitestoperformattitudecontrol(slewing)in
+roll,pitch,and/oryaw[12]. TheAEOSSPleveragesslewingasanadditionaltask,allowingthesatellitestochangetheir
+pointinganglebeyondthenadirdirection,thusextendingexistingVTWsorcreatingnewVTWsthatwerepreviously
+beyondthenadirdirectionalswathwidth[9]. ProminentformulationsoftheAEOSSPincludetheuseofslewingto
+maximizethenumberorprofitofobservationsundervariousoperationalconditions[8,9,13,14]andtheuseofslewing
+toprioritizetheamountofdatareturnedtoagroundstationoroperator[7,11,15]. However,satelliteagilitysuffersfrom
+3
+--- PAGE 4 ---
+adegradationinobservationqualityduetotheopticaltiltandresolutionchangethatresultsfromangledobservations,
+asalargeslewinganglecausesadifferenceinthelookanglecomparedtonadir-directionalobservations[16].
+Anadditionalstate-of-the-artsatelliteCONOPSthathasnotyetbeenimplementedasanextensiontotheEOSSP
+is constellation reconfigurability. Constellation reconfigurability is defined as the capability of satellites within a
+constellationtoperformorbitalmaneuverstoreformtheconstellationintoamoreoptimalstate[17,18]. Suchacapability
+providesflexibilityandresponsivenesstosatellitesystems[19,20],potentiallyallowingnewopportunitiesfortasksthat
+werepreviouslyunavailable. GeneralusesofconstellationreconfigurabilityexternaltoEOincludetelecommunications
+systemswithstagedsatellitedeploymentfortheminimizationofcosts[17,21,22],aswellasresponsetoincapacitated
+assetstocompensateforperformancelosses[23]. InvestigationsofconstellationreconfigurabilitywithinEOinclude
+single-stage[18,24,25]andmulti-stage[26–28]reconfigurationfornaturaldisasterimpactmonitoring,reconfiguration
+betweenselectedoperationmodes(regionalandglobalobservation)[19,29],andaltitudechangesbothforobservations
+ofearthquakeimpacts[30]andtrackingmobiletargets[31]. Withintheirinvestigations,Refs.[22,30,31]makeuse
+oflow-thrustmaneuvering,which,whilevaluableforfuel-efficientconstellationreconfiguration,iscomputationally
+expensiveandmaynotbeaseffectiveashigh-thrustmaneuveringinhighlydynamicenvironments. Furthermore,previous
+researchinRefs.[32,33]providesacomparativeanalysisbetweennadir-directional,agile,andmaneuverablesatellites
+withinrespectiveconstellationsrelativetotheobtainedVTWsbyeachconstellationof100historicaltropicalcyclones.
+WithinthecomparativeanalysisputforthbyRef.[33],thebestcaseofconstellationreconfigurabilityoutperformsthe
+nadir-directionalandagilesatelliteconstellationsby450.92%and48.52%onaverage,respectively,thusdepicting
+promising results regarding the performance of constellation reconfigurability. Each application of constellation
+reconfigurabilityhasdemonstratedbeneficialresultsthroughperformancelevelssignificantlygreaterthanthoseobtained
+byfixedconstellationconfigurations. Suchresearchhighlightsthevaluethatconstellationreconfigurabilityprovides
+toconstellationsystems;however,eachimplementationfocusesoneithermaximumobservations(maximumVTW),
+minimumrevisittimes,oracombinationofboth,henceneglectingdatacapacity,batteryusage,anddatadownlink,all
+ofwhicharekeycomponentsoftheEOSSP.
+ThispaperimplementsconstellationreconfigurabilitytotheEOSSPtodeveloptheReconfigurableEarthObservation
+SatelliteSchedulingProblem(REOSSP).Constellationreconfigurabilityisenabledthroughrecentdevelopmentsinthe
+MultistageConstellationReconfigurationProblem(MCRP)[26–28]andismotivatedthroughresultsindicatingthe
+performancelevelofconstellationreconfigurability[32,33]. ThenovelREOSSPformulationisdevelopedthrough
+theuseofmixed-integerlinearprogramming(MILP),enablingtheacquisitionofprovablyoptimalsolutionsandthe
+useofcommercialoptimizationproblem-solvingsoftware. Additionally,thepresentedformulationincorporatesthe
+considerationofonboarddatastorage,afeatureneglectedinRefs.[14,34,35],aswellasonboardbatterystorage,a
+featureneglectedinRef.[15],whereasRefs.[8,10,12]neglectbothfeatures. Inspirationfortheinclusionofsuch
+rigorousconsiderationsoriginatesfromRefs.[6,7,36]thatconsiderthesecrucialaspectsoftheEOSSP.
+4
+--- PAGE 5 ---
+Furthermore,thispaperseekstoimprovethecomputationruntimeoftheREOSSPthroughtheuseofarolling
+horizonprocedure(RHP).TheRHPapproachiterativelyoptimizesdecisionsoveragiventimehorizon[37]bysplitting
+alargeproblemintomultiplesubproblemscontainingasmallerportionofthefullproblem. Assuch,eachsubproblem
+hasareducedsolutionspaceandthusareducedlevelofcomplexity. Thispaperpresentsthecomputationalefficiency
+enabledbysolvingtheREOSSPthroughtheuseofRHP.
+In parallel, a novel EOSSP formulation, similarly considering onboard data and battery storage over time, is
+developedasabaselinenonreconfigurableequivalenttotheREOSSPtobenchmarktheperformanceoftheREOSSP
+throughexperimentation. Suchexperimentsincludeasetofrandominstanceswithrandomizedparametersandacase
+studyappliedtoHurricaneSandy. Throughtheseexperimentsandtheresultsobtained,theconclusionofRef.[38]that
+constellationreconfigurabilitygreatlyoutperformsastandardnadir-directionalconstellationwithoutreconfigurabilityis
+reinforced. Therefore,thispaperadditionallyservesasfurtherproofofconceptfortheimplementationofconstellation
+reconfigurabilitytotheEOSSPatahigherleveloffidelityandoperationalcomplexitythanpreviousresearch.
+An illustrative example of the capabilities of the REOSSP is shown in Fig. 1, including a representation of all
+tasksandoperationalconstraints. Tasks,suchasorbitalmaneuvering,targetobservation,datadownlinktoaground
+station,andsolarcharging,areshownthrougharrowsinthedirectionofthetask,whilethestateofvariablesrelatingto
+operationalconstraints,suchasthebattery,data,andfuelcapacities,areshownasalevelthatrepresentsthecurrent
+capacity. Theinitialstateoftheconstellationisat𝑡 ,wherebothsatelliteshavenovisibilityofagiventarget. Asa
+0
+resultofnopresentvisibility,bothsatellitesperformorbitalmaneuverstoformamoreoptimalconfiguration,aprocess
+thatdrainsboththeonboardbatteryandfuel. Thereconfiguredstateoftheconstellationisat𝑡 ,whichhasnowgained
+1
+visibilityofthetarget,thusobservingthetargetandcontributingtotheonboarddatastoragewhilefurtherdrainingthe
+onboardbattery. At𝑡 ,anobservationofthetargethasbeencompletedandmaynotberequiredtobeperformedagain,
+2
+leadingbothsatellitestoreplenishtheonboardbatterystoragethroughsolarcharging. Additionally,onesatelliteinthis
+portionwillnothavevisibilityofthegroundstation,andassuch,thissatelliteperformsanadditionalorbitalmaneuver
+togainsaidvisibility. Finally,𝑡 showsthefinalstateoftheconstellationwithbothsatellitesdownlinkingtheobserved
+3
+datatothegroundstation,transmittingthedatacurrentlystoredatthecostofmorebatterypower. Furthermore,this
+portionshowstheadditionaldrainonthefuelofthesatellitethatperformedanadditionalorbitalmaneuver.
+Therestofthispaperisorganizedasfollows. SectionsIIandIIIintroducetheMILPformulationsoftheEOSSP
+andREOSSP,respectively. Then,Sec.IVintroducesanalgorithmicsolutionmethodtotheREOSSPusingRHP,a
+novelformulationreferredtoastheREOSSP-RHP.Next,Sec.Vconductsathoroughcomparativeanalysisbetweenthe
+EOSSP,REOSSP,andREOSSP-RHP,includinginstanceswithrandomizedparametersandareal-worldcasestudy
+usinghistoricaldatafromHurricaneSandy. Finally,Sec.VIprovidesareviewofoverallresultsandcontributesseveral
+possibledirectionsforfutureresearch.
+5
+--- PAGE 6 ---
+Fig.1 AdemonstrationofthecapabilitiesenabledintheREOSSP.
+II.EarthObservationSatelliteSchedulingProblem—Baseline
+ToincorporateconstellationreconfigurabilityintotheEOSSP,abaselineformulationisdevelopedtobeexpanded
+forreconfiguration,whichalsoprovesusefulasacomparisonbetweenareconfigurableandanonreconfigurablesolution.
+ThisformulationishenceforthdenotedastheEOSSP.TheformulationoftheEOSSPinthispaperisanoptimization
+problemmakinguseofMILPtoscheduletasksoftargetobservation,datadownlinktogroundstations,andsolarpanel
+charging. Eachtaskisconstrainedbyphysicalcapabilities,datastorageavailability,and/orbatterypoweravailability.
+Theoverallfinitescheduledurationisdesignatedas𝑇
+𝑟
+,whichisdiscretizedbyatimestepsizeΔ𝑡 >0toresultin
+thefinitenumberofdiscretetimesteps𝑇 =𝑇 𝑟/Δ𝑡. Thesetoftimesteps,definedasT = {1,2,...,𝑇},containsall
+timestepsatwhichataskcanbeperformed. TherealsoexistsasetofsatellitesK = {1,2,...,𝐾}containing𝐾 total
+satellitesandtheassociatedclassicalorbitalelements,asetoftargetsforobservationandassociatedpositionsdefined
+asP = {1,2,...,𝑃}where𝑃isthetotalnumberoftargets,andasetofgroundstationsforthedownlinkofdataand
+associatedpositionsdefinedasG = {1,2,...,𝐺}where𝐺 isthetotalnumberofgroundstations.
+TheEOSSPalsoutilizesvariousparameterswithintheproblemconstraints. Thevisibilityoftarget 𝑝 ∈ P by
+satellite𝑘 ∈K attimestep𝑡 ∈ T iscontainedin𝑉𝑘 asabinaryvaluedependentonif 𝑝isvisible(one)ornot(zero).
+𝑡𝑝
+Similarly,thevisibilityofgroundstation𝑔 ∈ Gbysatellite𝑘 attimestep𝑡 iscontainedin𝑊𝑘 andthevisibilityofthe
+𝑡𝑔
+6
+--- PAGE 7 ---
+sunbysatellite𝑘 attimestep𝑡 iscontainedin𝐻𝑘,bothofwhicharebinaryvalues.
+𝑡
+Finally,thedataandbatterystoragelevelsaretrackedforeachsatellite𝑘 fromeachtimestep𝑡tothenext𝑡+1. The
+currentdatastoragelevelisdeterminedbytrackingthedatagainedthroughtargetobservationsandthedatatransmitted
+throughdownlinktoanygroundstation. Additionally,thedatastoragelevelofeachsatellite𝑘 isrestrictedtonotdeplete
+belowaminimumthreshold𝐷𝑘 andnotaccumulatemorethanthedatastoragecapacityofthesatellite,definedas
+min
+𝐷𝑘 . Similarly,thecurrentbatterystoragelevelisdeterminedbytrackingtheenergydrainedbyobservation,data
+max
+downlink,andstandardoperationaltaskssuchastrackingtelemetryandtime,andtheenergyreplenishedbycharging
+throughsunlightexposure. Thebatterystoragelevelofeachsatellite𝑘 isalsorestrictedtonotdepletebelowaminimum
+threshold𝐵𝑘 andnotaccumulatemorethanthebatterycapacity,definedas𝐵𝑘 .
+min max
+A.DecisionVariablesandIndicatorVariables
+ThedecisionvariablesoftheEOSSParethetasksbeingscheduledthroughoutthedurationofagivenschedule,
+withadditionalindicatorvariablesthattrackthedatastorageandbatterylevelsovertime. Eachdecisionvariabletaskis
+definedasbinarysuchthatavalueofonecorrespondstothetaskbeingperformedandavalueofzerocorrespondstothe
+tasknotbeingperformed,whiletheindicatorvariablesaredefinedasrealnumberswithupperandlowerboundsdefined
+asthemaximumandminimumstoragecapacities,respectively. Eachofthesevariablesisappliedtoeachsatellite𝑘 and
+timestep𝑡 intheoverallschedulehorizon,whilethetasksadditionallyapplytotheirassociatedobjective.
+Thedecisionvariablesrelativetosatellite𝑘 attimestep𝑡includetheobservationoftarget 𝑝,𝑦𝑘 inconstraints(1a);
+𝑡𝑝
+thedownlinkofdatatogroundstation𝑔,𝑞𝑘 inconstraints(1b);andsolarcharging,ℎ𝑘 inconstraints(1c). Similarly,
+𝑡𝑔 𝑡
+theindicatorvariablesrelativetosatellite𝑘 attimestep𝑡 include: thecurrentdatastoragelevel,𝑑𝑘 inconstraints(1d),
+𝑡
+restricted between a minimum of 𝐷𝑘 and a maximum of 𝐷𝑘 ; and the current battery storage level, 𝑏𝑘 in
+min max 𝑡
+constraints(1e),restrictedbetweenaminimumof𝐵𝑘 andamaximumof𝐵𝑘 .
+min max
+𝑦𝑘 ∈ {0,1}, 𝑡 ∈ T,𝑝 ∈ P,𝑘 ∈K (1a)
+𝑡𝑝
+𝑞𝑘 ∈ {0,1}, 𝑡 ∈ T,𝑔 ∈ G,𝑘 ∈K (1b)
+𝑡𝑔
+ℎ𝑘 ∈ {0,1}, 𝑡 ∈ T,𝑘 ∈K (1c)
+𝑡
+𝑑𝑘 ∈ [𝐷𝑘 ,𝐷𝑘 ], 𝑡 ∈ T,𝑘 ∈K (1d)
+𝑡 min max
+𝑏𝑘 ∈ [𝐵𝑘 ,𝐵𝑘 ], 𝑡 ∈ T,𝑘 ∈K (1e)
+𝑡 min max
+7
+--- PAGE 8 ---
+B.ObjectiveFunction
+TheobjectivefunctionoftheEOSSPmaximizesthenumberofobservationsandsubsequentdownlinkoccurrences
+ofdatatogroundstations,moreheavilyprioritizingthedownlinkofdatathroughanarbitraryweight,𝐶 > 1. The
+objectivefunctionvalueoftheEOSSPisdenotedas𝑧
+𝐸
+obtainedvia
+𝑧 𝐸 = ∑︁ ∑︁ (cid:169) (cid:173) ∑︁ 𝐶𝑞 𝑡 𝑘 𝑔 + ∑︁ 𝑦 𝑡 𝑘 𝑝 (cid:170) (cid:174) (2)
+𝑘∈K𝑡∈T 𝑔∈G 𝑝∈P
+(cid:171) (cid:172)
+where𝑧 isdeterminedthroughtheweightednumberofdownlinktasksperformedbythedecisionvariable𝑞𝑘 andthe
+𝐸 𝑡𝑔
+unweightednumberofobservationtasksperformedbythedecisionvariable𝑦𝑘 withrespecttoall𝐾 satellites,all𝑇
+𝑡𝑝
+timesteps,andall𝐺 groundstationsorall𝑃targetsfordecisionvariables𝑞𝑘 and𝑦𝑘 ,respectively. Alternatively,the
+𝑡𝑔 𝑡𝑝
+figureofmeritfortheEOSSPcorrespondstotheamountofdatadownlinkedtogroundstations,obtainedvia
+𝑍 𝐸 = ∑︁ ∑︁∑︁ 𝐷 comm 𝑞 𝑡 𝑘 𝑔 (3)
+𝑘∈K𝑡∈T𝑔∈G
+where 𝐷 comm ≥ 0istheamountofdatatransmittedduringasingletimestep. Theobjectivefunctionvalueandthe
+figureofmeritarebothusedtocomparetheperformanceoftheEOSSPtotheREOSSPandREOSSP-RHP.
+C.Constraints
+TheEOSSPcontainsconstraints,includingtheapplicationoftargetvisibility,groundstationvisibility,sunvisibility,
+maximum(andminimum)datastoragecapacity,andmaximum(andminimum)batterystoragecapacity.
+1. TimeWindowConstraints
+Eachtaskisrestrictedtoonlybeperformedwhenvisibilityofthetaskisavailabletoeachsatelliteindividually;
+theseconstraintsdefinetheVTWforeachtaskutilizingtheassociatedparametersuchas𝑉𝑘 fortargetsobservation,
+𝑡𝑝
+𝑊𝑘 forgroundstationdownlink,and𝐻𝑘 forsolarpanelcharging,respectively. Additionally,power-relatedtaskssuch
+𝑡𝑔 𝑡
+astargetobservation,datadownlink,andsolarchargingarerestrictedtooccurringexclusivelyfromoneanother.
+𝑉𝑘 ≥ 𝑦𝑘 , ∀𝑡 ∈ T,∀𝑝 ∈ P,∀𝑘 ∈K (4a)
+𝑡𝑝 𝑡𝑝
+𝑊𝑘 ≥𝑞𝑘 , ∀𝑡 ∈ T,∀𝑔 ∈ G,∀𝑘 ∈K (4b)
+𝑡𝑔 𝑡𝑔
+𝐻𝑘 ≥ ℎ𝑘, ∀𝑡 ∈ T,∀𝑘 ∈K (4c)
+𝑡 𝑡
+∑︁ 𝑦𝑘 + ∑︁ 𝑞𝑘 +ℎ𝑘 ≤1, ∀𝑡 ∈ T,∀𝑘 ∈K (4d)
+𝑡𝑝 𝑡𝑔 𝑡
+𝑝∈P 𝑔∈G
+8
+--- PAGE 9 ---
+Constraints(4a–4c)restricttheobservationoftargets,downlinkofdatatogroundstations,andsolarchargingtothe
+associatedVTW,respectively. Theseconstraintsoperateundertheassumptionthatonlyonesatelliteisrequiredto
+performeachtasksuchthateachsatelliteoperatesindependently. Additionally,constraints(4d)restrictobservations,
+datadownlink,andsolarchargingonlytobeperformedinexclusiontooneanother,ensuringthateachsatellitemust
+choosewhichtasktoperformiftheVTWofeachtaskoverlaps. Suchaconsiderationisinplaceforbatteryrouting
+considerationtonotoverloadthesimultaneouspowerexchangewithinanonboardbattery,similartothetaskoverlap
+exclusionemployedinRef.[39]. Additionally,theseconstraintsensurethatonlyonetargetmaybeviewedateachtime
+steporthatonlyonegroundstationmaybeutilizedfordatadownlinkforthesamereason.
+Ademonstrationofthevisibilityconditionsinconstraints(4a–4c)aswellastheoverlapexclusionconditionsin
+constraints(4d)isshowninFig.2. Withinthefigure,illustrativebinaryvisibilityparameters𝑉𝑘 ,𝑊𝑘 ,and 𝐻𝑘 are
+𝑡𝑝 𝑡𝑔 𝑡
+shownthroughblue,red,andorangeboxes,respectively,indicatingtimealongahorizonwithvisibilityoftheassociated
+goal,andthebinarydecisionvariables𝑦𝑘 ,𝑞𝑘 ,andℎ𝑘 areshownsimilarly. Thefiguredepictssomekeyoccurrences
+𝑡𝑝 𝑡𝑔 𝑡
+resultingfromtheaboveconstraints,labeledastimesteps𝑡 through𝑡 . First,timestep𝑡 depictsthevisibilityofa
+1 5 1
+groundstationwithnodownlinkoccurrenceasaresultofnopriorobservationscontributingdatatobedownlinked.
+Nexttimestep𝑡 depictsthevisibilityofthesunalongwiththesubsequentsolarcharging. Then,timestep𝑡 shows
+2 3
+thevisibilityandsubsequentobservationofatarget,andtimestep𝑡 illustratesthevisibilityofagroundstationthat
+4
+allowsthedownlinkofthepreviouslyobserveddata. Finally,timestep𝑡 depictstheenforcementofconstraints(4d),
+5
+restrictingonlyonetasktooccurateachtimestep,despiteallthreetaskshavingvisibilityoftheassociatedgoalat
+varioustimes. Theenforcementofconstraints(4d)additionallyappliestothesimultaneousvisibilityofdifferenttargets
+andgroundstations,thoughthisisnotshowninthefiguredirectly.
+Target-related Ground station-related Sun-related
+𝑉𝑘
+𝑡𝑝
+𝑊𝑘
+𝑡𝑔
+𝐻𝑘
+𝑡
+𝑦𝑘
+𝑡𝑝
+𝑞𝑘
+𝑡𝑔
+ℎ𝑘
+𝑡 𝑡
+𝑡 𝑡 𝑡 𝑡 𝑡
+1 2 3 4 5
+Fig.2 Feasibleobservation,downlink,andsolarchargingoccurrence.
+9
+--- PAGE 10 ---
+2. DataTrackingandStorageConstraints
+Thesecondsetofconstraintstrackstheusageofeachsatellite’sonboarddatastorage,determiningwhendatais
+gainedordownlinkedandrestrictingthedatasothatitdoesnotexceedstoragelimits.
+𝑑 𝑡 𝑘 +1 = 𝑑 𝑡 𝑘 + ∑︁ 𝐷 obs 𝑦 𝑡 𝑘 𝑝 − ∑︁ 𝐷 comm 𝑞 𝑡 𝑘 𝑔 , ∀𝑡 ∈ T \{𝑇},∀𝑘 ∈K (5a)
+𝑝∈P 𝑔∈G
+𝑑 𝑡 𝑘 + ∑︁ 𝐷 obs 𝑦 𝑡 𝑘 𝑝 ≤ 𝐷 m 𝑘 ax , ∀𝑡 ∈ T,∀𝑘 ∈K (5b)
+𝑝∈P
+𝑑 𝑡 𝑘 − ∑︁ 𝐷 comm 𝑞 𝑡 𝑘 𝑔 ≥ 𝐷 m 𝑘 in , ∀𝑡 ∈ T,∀𝑘 ∈K (5c)
+𝑔∈G
+Constraints(5a)trackthedatastorageofeachsatelliteateachtimestep,ensuringthatthetasksperformedattime
+step𝑡 contributetothedatastoragelevelattimestep𝑡+1,where𝐷
+obs
+≥0istheamountofdataacquiredthroughone
+observationwithinonetimestep. Furthermore, 𝐷 isaconstantvalueofgivenunits,while 𝐷 isobtainedby
+obs comm
+multiplyingadatatransmissionrateinunits/timebyΔ𝑡 toobtainadiscreteconstantvalue. Itisalsoassumedthateach
+satellitebeginswiththeminimumdatastoragevaluesuchthat𝑑𝑘 = 𝐷𝑘 , ∀𝑘 ∈K,allowingthefirstdataobservedto
+1 min
+contributeattime𝑡 =1forthedatastoragelevelof𝑑𝑘. Constraints(5b)ensurethatthedatastoredwithineachsatellite
+2
+throughobservationdoesnotexceedthemaximumcapacitysetby𝐷𝑘 . Similarly,constraints(5c)ensurethatthedata
+max
+transmittedtoagroundstationdoesnotexceedtheactualamountofdatacontainedbythesatellite.
+AdemonstrationofthecontrolandcontributionofthedatastorageforeachsatelliteisshowninFig.3a,withsimilar
+keyoccurrencesdenotedbytimesteps𝑡 through𝑡 . First,timesteps𝑡 and𝑡 depictthecontributionofobservations
+1 5 1 2
+andthedrainofdownlinktotheonboarddatastorage,respectively,providedthroughconstraints(5a). Then,timesteps
+𝑡 and𝑡 depictthehaltofobservationssuchthattheonboarddataleveldoesnotexceedthemaximumcapacitysetby
+3 4
+𝐷𝑘 ,providedthroughconstraints(5b). Finally,timestep𝑡 depictsthehaltofdownlinkoncethedatalevelisfully
+max 5
+drained,ensuringthecurrentdatalevelremainsnon-negative,providedthroughconstraints(5c).
+3. BatteryTrackingandStorageConstraints
+Thethirdandfinalsetofconstraintstrackstheusageoftheonboardbatterypowerofeachsatellite,similarlytothat
+ofthedatatrackingconstraints,determiningwhenthebatteryischargedordepleted,aswellasrestrictingthepowerto
+10
+--- PAGE 11 ---
+notoverflowonboardbatterylimitsandnotdepletebelowtheminimumcapacity.
+𝑏 𝑡 𝑘 +1 = 𝑏 𝑡 𝑘 +𝐵 charge ℎ 𝑡 𝑘 − ∑︁ 𝐵 obs 𝑦 𝑡 𝑘 𝑝 − ∑︁ 𝐵 comm 𝑞 𝑡 𝑘 𝑔 −𝐵 time , ∀𝑡 ∈ T \{𝑇},∀𝑘 ∈K (6a)
+𝑝∈P 𝑔∈G
+𝑏 𝑡 𝑘 +𝐵 charge ℎ 𝑡 𝑘 ≤ 𝐵 m 𝑘 ax , ∀𝑡 ∈ T,∀𝑘 ∈K (6b)
+𝑏 𝑡 𝑘 − ∑︁ 𝐵 obs 𝑦 𝑡 𝑘 𝑝 − ∑︁ 𝐵 comm 𝑞 𝑡 𝑘 𝑔 −𝐵 time ≥ 𝐵 m 𝑘 in , ∀𝑡 ∈ T,∀𝑘 ∈K (6c)
+𝑝∈P 𝑔∈G
+Constraints(6a)trackthebatterylevelofeachsatelliteateachtimestep,where𝐵
+charge
+≥0istheamountofpower
+abletobecharged,𝐵
+obs
+≥0istheamountofpowerrequiredforobservationtooccur,𝐵
+comm
+≥0istheamountofpower
+requiredforadatadownlinktransmission,and 𝐵 time ≥ 0isthepowerrequiredfornormaloperationaltaskssuchas
+telemetryandtimekeeping. Eachpowervalueaccountsforonetimestepandisfoundbymultiplyingachargeratein
+units/timebyΔ𝑡 toobtainapowervalueinthegivenunits. Itissimilarlyassumedthateachsatellitebeginswitha
+fullbatterychargesuchthat𝑏𝑘 = 𝐵𝑘 , ∀𝑘 ∈K,allowingthefirstpowerdrawoccurringat𝑡 =1tocontributetothe
+1 max
+batterystoragelevelof𝑏𝑘. Constraints(6b)ensurethatthepowercontainedwithineachsatellitethroughchargingdoes
+2
+notexceedthemaximumcapacityofthebatterysetby𝐵𝑘 . Similarly,constraints(6c)ensurethatthepowerrequired
+max
+byothertaskperformancedoesnotdrainthebatterybelowtheminimumcapacitysetby𝐵𝑘 .
+min
+Figure3bvisualizesthebatteryconsumptionsimilarlytoFig.3a,withkeyoccurrencesdenotedbytimesteps𝑡
+1
+through𝑡 . First,timestep𝑡 demonstratestheconstantbatterydraincausedbynormaloperationaltasks,𝐵 ,andtime
+4 1 time
+step𝑡 demonstratesthecombinedbatterydrainoftheconstantdrainandobservation. Then,timestep𝑡 demonstrates
+2 3
+thebatterychargingasaresultofchargingoperationswhilewithinsunvisibility. Finally,timestep𝑡 reiteratesthe
+4
+taskoverlapexclusionfromconstraints(4d). Suchconsumptionofbatterypoweradditionallyappliestodatadownlink,
+thoughitisnotshowndirectlyinthefigure.
+Target-related Ground station-related Target-related Sun-related
+𝑦 𝑡 𝑘 𝑝 𝑦 𝑡 𝑘 𝑝
+𝑞 𝑡 𝑘 𝑔 ℎ 𝑡 𝑘
+𝐷m 𝑘 ax 𝐵m 𝑘 ax
+𝑑𝑘 𝑏𝑘
+𝑡 𝑡
+𝐷𝑘 𝑡 𝐵 m 𝑘 in 𝑡
+min 𝑡 𝑡 𝑡 𝑡 𝑡 𝑡 𝑡 𝑡 𝑡
+1 2 3 4 5 1 2 3 4
+(a)Visualizationofthedatastoragelevelofsatellite𝑘 (b)Visualizationofthebatterystoragelevelofsatellite𝑘
+Fig.3 Dataandbatterystoragelevelvisualizationsofsatellite𝑘.
+11
+--- PAGE 12 ---
+D.FullFormulation
+Giventheobjectivefunction,constraints,anddecision/indicatorvariables,thefullEOSSPisdefinedasfollows:
+max 𝑧
+𝐸
+(EOSSP)
+s.t. Constraints(1)–(2),(4)–(6)
+Theobjectivefunctionbalancesthenumberofoccurrencesofdatadownlinktoanygroundstations𝑔 ∈ Gwiththe
+lessheavilyweightednumberofoccurrencesoftheobservationofanytargets 𝑝 ∈ P,whiletheconstraintsrestrictthe
+problemtotheobservationofdatabeforedatadownlink,theassuranceofavailabledatastorage,andtheassuranceof
+availablepowerfortaskcompletion. Additionally,theEOSSPprovidesthescheduleofcharging,observation,anddata
+downlinkperformedbyaconstellationofsatellitesoveragiventimehorizon.
+III.ReconfigurableEarthObservationSatelliteSchedulingProblem
+TheREOSSPformulation,henceforthreferredtoastheREOSSP,isanextensionoftheEOSSPthatincorporates
+satellitemaneuveringtasksinadditiontothetaskspresentintheEOSSP,thusallowinganewdegreeoffreedom. The
+constellationreconfigurationprocessisderivedfromtheMCRP,obtainedfromRefs.[26–28]. Allsetsandparameters
+remainasdefinedinSec.IIunlessotherwisespecified.
+InitialchangesaremadetoT regardingstagesforreconfiguration,aswellasadditionalorbitalslotsbeingprovided
+to each satellite 𝑘 ∈ K. Firstly, within T there exists a set of equally spaced stages at which each satellite in the
+constellationcanperformorbitalmaneuvers,definedasS = {0,1,2,...,𝑆},where𝑆isthenumberofequallyspaced
+stagesandstage𝑠 =0isthestagewhereintheinitialconfigurationoftheconstellationispresent. Asaresultofeach
+stage being equally spaced in T, there exists a set of time steps within each stage defined as T𝑠 = {1,2,...,𝑇𝑠}
+where𝑇𝑠 =𝑇/𝑆 isanintegerdefiningthenumberoftimestepsperstage. Secondly,theorbitalslotsaredefinedas
+J𝑠𝑘 = {1,2,...,𝐽𝑠𝑘},where𝐽𝑠𝑘 isthetotalnumberofavailableslotsforsatellite𝑘 ∈K andstage𝑠 ∈S.
+As a result of the REOSSP dividing the time horizon into stages, some parameters are modified slightly, and
+additionalparametersareincludedforthecostoforbitalmaneuvers. Mostimportantly,thebinaryvisibilityparameters
+fortargets,groundstations,andthesunareextendedtoincludetwoadditionaldimensionsrepresentingthecurrentstage
+andoccupiedorbitalslot;eachisnowdefinedas𝑉𝑠𝑘 ,𝑊𝑠𝑘 ,and𝐻𝑠𝑘,respectively. Additionally,thecostoftransfer
+𝑡𝑗𝑝 𝑡𝑗𝑔 𝑡𝑗
+betweentwoorbitalslotsofagivensatelliteandagivenstageis𝑐𝑠𝑘,definedasthetransferbetweenslot𝑖 ∈ J𝑠−1,𝑘 in
+𝑖𝑗
+thepreviousstageconfiguration(𝑠−1)toslot 𝑗 ∈ J𝑠𝑘 inthecurrentstage(𝑠)relativetosatellite𝑘andstage𝑠 ∈S\{0}.
+Furthermore,themaximumtransfercostfortheentirescheduleisallottedtoeachsatelliteas𝑐𝑘 , ∀𝑘 ∈K.
+max
+12
+--- PAGE 13 ---
+A.DecisionVariables
+ThedecisionvariablesandindicatorvariablesoftheREOSSParethesametasksandindicatorsincludedinthe
+EOSSP,withadditionaldimensionalityregardingreconfigurationstagesandanadditionaltasktocontrolthemaneuvers
+ofeachsatellite. Thenewdecisionvariable,𝑥𝑠𝑘 inconstraints(7a),definesthesequenceofmaneuversofsatellite
+𝑖𝑗
+𝑘 fromanorbitalslot𝑖 ∈ J𝑠−1,𝑘 inthepreviousstagetoanorbitalslot 𝑗 ∈ J𝑠𝑘 inthecurrentstageforallstages
+𝑠 ∈S\{0}suchthatthesingletonsetinitialconditionorbitalslotoption,J0𝑘,istransferredfromstage𝑠 =1. Allother
+decisionandindicatorvariablesexpandthedimensionalityoftherespectiveEOSSPvariablesthroughanadditional
+index𝑠 ∈S\{0}relativetotimestep𝑡 ∈ T𝑠 andarerepresentedinconstraints(7b–7e):
+𝑥𝑠𝑘 ∈ {0,1}, 𝑠 ∈S\{0},𝑘 ∈K,𝑖 ∈ J𝑠−1,𝑘, 𝑗 ∈ J𝑠𝑘 (7a)
+𝑖𝑗
+𝑦𝑠𝑘 ∈ {0,1}, 𝑠 ∈S\{0},𝑡 ∈ T𝑠,𝑝 ∈ P,𝑘 ∈K (7b)
+𝑡𝑝
+𝑞𝑠𝑘 ∈ {0,1}, 𝑠 ∈S\{0},𝑡 ∈ T𝑠,𝑔 ∈ G,𝑘 ∈K (7c)
+𝑡𝑔
+ℎ𝑠𝑘 ∈ {0,1}, 𝑠 ∈S\{0},𝑡 ∈ T𝑠,𝑘 ∈K (7d)
+𝑡
+𝑑𝑠𝑘 ∈ [𝐷𝑘 ,𝐷𝑘 ], 𝑠 ∈S\{0},𝑡 ∈ T𝑠,𝑘 ∈K (7e)
+𝑡 min max
+𝑏𝑠𝑘 ∈ [𝐵𝑘 ,𝐵𝑘 ], 𝑠 ∈S\{0},𝑡 ∈ T𝑠,𝑘 ∈K (7f)
+𝑡 min max
+B.ObjectiveFunction
+TheobjectivefunctionoftheREOSSPmirrorstheEOSSP,maximizingthenumberofobservationsandsubsequent
+downlinkoccurrencesofdatatogroundstationswiththesameweighting𝐶 toprioritizethedownlinkofdata. The
+objectivefunctionvalueoftheREOSSPisdenotedas𝑧
+𝑅
+obtainedvia
+𝑧 𝑅 = ∑︁ ∑︁ ∑︁ (cid:169) (cid:173) ∑︁ 𝐶𝑞 𝑡 𝑠 𝑔 𝑘 + ∑︁ 𝑦 𝑡 𝑠 𝑝 𝑘(cid:170) (cid:174) (8)
+𝑘∈K𝑠∈S\{0}𝑡∈T𝑠 𝑔∈G 𝑝∈P
+(cid:171) (cid:172)
+where𝑧
+𝑅
+additionallyconsidersall𝑆stagesandall𝑇𝑠 timestepsperstage. SimilarlytotheEOSSP,thefigureofmerit
+fortheREOSSPcorrespondstotheamountofdatadownlinkedtogroundstations,obtainedvia
+𝑍 𝑅 = ∑︁ ∑︁ ∑︁ ∑︁ 𝐷 comm 𝑞 𝑡 𝑠 𝑔 𝑘 (9)
+𝑘∈K𝑠∈S\{0}𝑡∈T𝑠𝑔∈G
+TheobjectivefunctionvalueandthefigureofmeritareusedtocomparetheperformanceoftheREOSSPtotheEOSSP
+andREOSSP-RHP.Todistinguishtheresultantobjectivefunctionvaluesandfigureofmeritvalues,thesubscript𝑅is
+usedinplaceofthesubscript𝐸.
+13
+--- PAGE 14 ---
+C.Constraints
+TheREOSSPcontainssimilarconstraintstotheEOSSPbutwithextendeddimensionalitytoincorporatestages
+sequentiallywithinthetimehorizonandreflecttheeffectsofthereconfigurationprocessthroughnewsatellitepositioning
+andresourcesrequiredtoperformsuchmaneuvers.
+1. OrbitalManeuverPathContinuityConstraints
+Thefirstsetofconstraintsrestrictsthepathofconstellationreconfigurabilitytofeasiblemaneuveringsequences
+concerningagivenbudgetforpropellant.
+∑︁ 𝑥1𝑘 =1, ∀𝑘 ∈K,∀𝑖 ∈ J0𝑘 (10a)
+𝑖𝑗
+𝑗∈J1𝑘
+∑︁ 𝑥𝑠+1,𝑘 − ∑︁ 𝑥𝑠𝑘 =0, ∀𝑠 ∈S\{0,𝑆},∀𝑘 ∈K,∀𝑖 ∈ J𝑠𝑘 (10b)
+𝑖𝑗 𝑗′𝑖
+𝑗∈J𝑠+1,𝑘 𝑗′∈J𝑠−1,𝑘
+∑︁ ∑︁ ∑︁ 𝑐𝑠𝑘𝑥𝑠𝑘 ≤𝑐𝑘 , ∀𝑘 ∈K (10c)
+𝑖𝑗 𝑖𝑗 max
+𝑠∈S\{0}𝑖∈J𝑠−1,𝑘 𝑗∈J𝑠𝑘
+Constraints(10a)ensurethatonlyoneorbitalslotinthefirststage(J1𝑘)canbeselectedfortransferfromtheinitial
+condition(J0𝑘),ensuringthatonesatellitecannotoccupymultiplepositionsatonetime. Constraints(10b)similarly
+ensurethatonlyoneorbitalslotinsubsequentstagesisselectedfortransferbutalsoextendtheconditiontostatethatthe
+satellitecanonlytransferfromthecurrentslot(𝑖 ∈ J𝑠𝑘)ifitarrivedtherepreviously. Bothconstraintsensurethat
+satellitesdonotconducttransfersfrompositionsinwhichtheymaynotbelocated. Finally,constraints(10c)restrictthe
+allowabletransferbetweenslotstowithinthemaximumpropellantbudgetofthesatellite.
+AdemonstrationoffeasiblepathcontinuityandmaneuveringisshowninFig.4,depictingthepossiblepathstaken
+byanynumberofsatellitesforanynumberoforbitalslotsorstages,wherethehighlightedpathsrepresent𝑥𝑠𝑘 = 1.
+𝑖𝑗
+Thefigurenotesthattheinitialconditionandfirstorbitalmaneuversoccuroutsideofthetimehorizonsuchthatthe
+constellationconfigurationatstage 𝑠 = 1isformedattime𝑡 = 1andsubsequentstagesoccuratthecorresponding
+𝑡 =1+(𝑠−1)𝑇𝑠 time. Additionally,thefiguredemonstratestheoptiontoremainwithinthecurrentorbitalslot,suchas
+satellite𝐾 instagetwo,resultinginacost𝑐𝑠𝑘 ofzero.
+𝑖𝑗
+2. TimeWindowConstraints
+ThesecondsetofconstraintsrestrictstaskperformancetotheavailableVTWs, additionallyenforcingthetask
+overlapexclusionofeachtask. Theseconstraintsmirrorconstraints(4)whileadditionallyaccountingfortheorbital
+maneuverpathandsubsequentsatelliteorbitalslotpositionswithineachreconfigurationstage,incorporatedusing𝑥𝑠𝑘
+𝑖𝑗
+14
+--- PAGE 15 ---
+𝑡=0 𝑡=1 𝑇𝑠 (𝑠−1)𝑇𝑠 (𝑆−1)𝑇𝑠 𝑇
+Time
+Stage 𝑠=0 𝑠=1 𝑠=2 𝑠=𝑆
+Satellite
+𝑘=1
+𝒥01 𝒥11 𝒥21 𝒥𝑆1
+𝒥0𝑘 𝒥1𝑘 𝒥2𝑘 𝒥𝑠𝑘 𝒥𝑆𝑘
+𝑘=𝐾
+𝒥0𝐾 𝒥1𝐾 𝒥2𝐾 𝒥𝑆𝐾
+Fig.4 Feasibleorbitalmaneuverprogressionfor𝐾 satellites.
+andotherextendeddimensionalityparameters.
+∑︁ ∑︁ 𝑉𝑠𝑘 𝑥𝑠𝑘 ≥ 𝑦𝑠𝑘, ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠,∀𝑝 ∈ P,∀𝑘 ∈K (11a)
+𝑡𝑗𝑝 𝑖𝑗 𝑡𝑝
+𝑖∈J𝑠−1,𝑘 𝑗∈J𝑠𝑘
+∑︁ ∑︁ 𝑊𝑠𝑘 𝑥𝑠𝑘 ≥𝑞𝑠𝑘, ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠,∀𝑔 ∈ G,∀𝑘 ∈K (11b)
+𝑡𝑗𝑔 𝑖𝑗 𝑡𝑔
+𝑖∈J𝑠−1,𝑘 𝑗∈J𝑠𝑘
+∑︁ ∑︁ 𝐻𝑠𝑘𝑥𝑠𝑘 ≥ ℎ𝑠𝑘, ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠,∀𝑘 ∈K (11c)
+𝑡𝑗 𝑖𝑗 𝑡
+𝑖∈J𝑠−1,𝑘 𝑗∈J𝑠𝑘
+∑︁ 𝑦𝑠𝑘 + ∑︁ 𝑞𝑠𝑘 +ℎ𝑠𝑘 ≤1, ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠,∀𝑘 ∈K (11d)
+𝑡𝑝 𝑡𝑔 𝑡
+𝑝∈P 𝑔∈G
+3. DataTrackingandStorageConstraints
+Thethirdsetofconstraintstrackstheusageoftheonboarddatastoragelevelofeachsatellite,mirroringconstraints(5),
+whileadditionallysplittingconstraints(5a)betweenconstraints(12a)and(12b). Constraints(12a)trackthedatastorage
+levelofeachsatellitewithinthetimehorizonofeachstage,whileconstraints(12b)trackthedatastoragelevelatthe
+stagegap,wheretheendofonestagemeetsthebeginningofthenext,providingtheconditionthat𝑑𝑠𝑘 = 𝑑𝑠+1,𝑘.
+𝑇𝑠+1 1
+15
+--- PAGE 16 ---
+𝑑 𝑡 𝑠 + 𝑘 1 = 𝑑 𝑡 𝑠𝑘 + ∑︁ 𝐷 obs 𝑦 𝑡 𝑠 𝑝 𝑘 − ∑︁ 𝐷 comm 𝑞 𝑡 𝑠 𝑔 𝑘, ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠\{𝑇𝑠},∀𝑘 ∈K (12a)
+𝑝∈P 𝑔∈G
+𝑑 1 𝑠+1,𝑘 = 𝑑 𝑇 𝑠𝑘 𝑠 + ∑︁ 𝐷 obs 𝑦 𝑇 𝑠𝑘 𝑠𝑝 − ∑︁ 𝐷 comm 𝑞 𝑇 𝑠𝑘 𝑠𝑔 , ∀𝑠 ∈S\{0,𝑆},∀𝑘 ∈K (12b)
+𝑝∈P 𝑔∈G
+𝑑 𝑡 𝑠𝑘 + ∑︁ 𝐷 obs 𝑦 𝑡 𝑠 𝑝 𝑘 ≤ 𝐷 m 𝑘 ax , ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠,∀𝑘 ∈K (12c)
+𝑝∈P
+𝑑 𝑡 𝑠𝑘 − ∑︁ 𝐷 comm 𝑞 𝑡 𝑠 𝑔 𝑘 ≥ 𝐷 m 𝑘 in , ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠,∀𝑘 ∈K (12d)
+𝑔∈G
+4. BatteryTrackingConstraints
+The fourth set of constraints only tracks the onboard battery capacity, mirroring constraints (6a). Similarly to
+constraints(12a)and(12b),constraints(13a)and(13b)trackthebatterystoragelevelofeachsatellitewithinthetime
+horizonofeachstageandatthestagegap,respectively,where𝐵
+recon
+≥0isthepowercostoforbitalmaneuversasa
+conservativeestimateforthrusterpointing. Separately,constraints(13c)accountforthefirstorbitalmaneuvers,defined
+asareductionfromafullonboardbatteryof𝐵𝑘 .
+max
+𝑏 𝑡 𝑠 + 𝑘 1 = 𝑏 𝑡 𝑠𝑘 +𝐵 charge ℎ 𝑡 𝑠𝑘 − ∑︁ 𝐵 obs 𝑦 𝑡 𝑠 𝑝 𝑘 − ∑︁ 𝐵 comm 𝑞 𝑡 𝑠 𝑔 𝑘 −𝐵 time , ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠\{𝑇𝑠},∀𝑘 ∈K (13a)
+𝑝∈P 𝑔∈G
+𝑏 1 𝑠+1,𝑘 = 𝑏 𝑇 𝑠𝑘 𝑠 +𝐵 charge ℎ 𝑇 𝑠𝑘 𝑠 − ∑︁ 𝐵 obs 𝑦 𝑇 𝑠𝑘 𝑠𝑝 − ∑︁ 𝐵 comm 𝑞 𝑇 𝑠𝑘 𝑠𝑔 −
+𝑝∈P 𝑔∈G
+∀𝑠 ∈S\{0,𝑆},∀𝑘 ∈K (13b)
+∑︁ ∑︁ 𝐵
+recon
+𝑥
+𝑖
+𝑠
+𝑗
++1,𝑘 −𝐵
+time
+,
+𝑖∈J𝑠𝑘 𝑗∈J𝑠+1,𝑘
+𝑏1 1 𝑘 = 𝐵 m 𝑘 ax − ∑︁ ∑︁ 𝐵 recon 𝑥 𝑖 1 𝑗 𝑘, ∀𝑘 ∈K (13c)
+𝑖∈J0𝑘 𝑗∈J1𝑘
+5. BatteryStorageConstraints
+Thefinalsetofconstraintsensurestheonboardbatterylevelremainswithinestablishedbounds,whereconstraints(14a)
+and(14b)aredirectparallelstoconstraints(6b)and(6c),respectively. Additionally,constraints(14c)enforcethesame
+conditionasconstraints(14b)atthestagegaps,andconstraints(14d)accountforthefirstorbitalmaneuvers.
+16
+--- PAGE 17 ---
+𝑏 𝑡 𝑠𝑘 +𝐵 charge ℎ 𝑡 𝑠𝑘 ≤ 𝐵 m 𝑘 ax , ∀𝑠 ∈S\{0},∀𝑡 ∈ T𝑠,∀𝑘 ∈K (14a)
+𝑏 𝑡 𝑠𝑘 − ∑︁ 𝐵 obs 𝑦 𝑡 𝑠 𝑝 𝑘 − ∑︁ 𝐵 comm 𝑞 𝑡 𝑠 𝑔 𝑘 −𝐵 time ≥ 𝐵 m 𝑘 in , ∀𝑠 ∈S\{0},∀𝑡 ∈
+
+T𝑠\{𝑇𝑠} if𝑠 ≠𝑆,
+∀𝑘 ∈K (14b)
+𝑝∈P 𝑔∈G  T𝑆 if𝑠 =𝑆,
+
+𝑏 𝑇 𝑠𝑘 𝑠 − ∑︁ 𝐵 obs 𝑦 𝑇 𝑠𝑘 𝑠𝑝 − ∑︁ 𝐵 comm 𝑞 𝑇 𝑠𝑘 𝑠𝑔 −
+𝑝∈P 𝑔∈G
+∀𝑠 ∈S\{0,𝑆},∀𝑘 ∈K (14c)
+∑︁ ∑︁ 𝐵 recon 𝑥 𝑖 𝑠 𝑗 +1,𝑘 −𝐵 time ≥ 𝐵 m 𝑘 in ,
+𝑖∈J𝑠𝑘 𝑗∈J𝑠+1,𝑘
+𝐵 m 𝑘 ax − ∑︁ ∑︁ 𝐵 recon 𝑥 𝑖 1 𝑗 𝑘 ≥ 𝐵 m 𝑘 in , ∀𝑘 ∈K (14d)
+𝑖∈J0𝑘 𝑗∈J1𝑘
+D.FullFormulation
+Giventhenewobjectivefunction,constraints,anddecisionvariables,withtheadditionoforbitalmaneuveringasa
+taskandthereconfigurationstages,thefullREOSSPisdenotedasfollows:
+max 𝑧
+𝑅
+(REOSSP)
+s.t. Constraints(7)–(8),(10)–(14)
+Theobjectivefunctionagainbalancesthenumberofoccurrencesofdatadownlinktoanygroundstations𝑔 ∈ G
+withthelessheavilyweightednumberofoccurrencesoftheobservationofanytargets 𝑝 ∈ P. Simultaneously,the
+constraints restrict the problem to the observation of data prior to data downlink, the assurance of available data
+storage,theassuranceofavailablebatterypower,andfeasibleconstellationreconfigurabilitywithconsiderationofa
+maximumfuelbudget. Additionally,theREOSSPprovidesthescheduleofcharging,observation,datadownlink,and
+orbitalmaneuvers,aswellasthepathoforbitalmaneuvers,ofaconstellationofsatellitesoveragiventimehorizon.
+AppendixAcontainsamathematicalproofvalidatingtheidenticalnatureoftheEOSSPandREOSSPintheeventthat
+𝑐𝑘 =0,∀𝑘 ∈K,whereinnosatellitemayperformorbitalmaneuvers.
+max
+IV.RollingHorizonProcedure
+The RHP solution method is an iterative algorithmic approach to the REOSSP that divides the problem into
+sequentialsubproblems,eachincorporatingfuturelookaheadstagesandupdatingtheproblemstateasthesubproblems
+aresolvedatreconfigurationstages. Thissolutionmethodisintroducedtoaddressthecomputationalintractability
+that may occur in large instances of the REOSSP and will be referred to as the REOSSP-RHP for brevity. The
+17
+--- PAGE 18 ---
+REOSSP-RHPanalyzestheimpactofdecisionsonfuturelookaheadstagestomakeamoreinformeddecisioninthe
+currentstagewithamuchsmallerproblemscale.
+TheREOSSP-RHPheavilymirrorstheREOSSPinallaspects,withafewkeydifferencesthroughtheexpansion
+oftimeparameterstoseparatetheproblemintopiecewisesubproblemsalongthetimehorizon. Assuch, onlythe
+differencesbetweentheREOSSP-RHPandREOSSPwillbeexplicitlystated. Eachsubproblem,denotedRHP(𝑠,𝐿),
+consisted of a control stage 𝑠 ∈ S \{0} in which the solution is isolated and 𝐿 lookahead stages which aid in the
+decision-makingprocess. Therefore,theREOSSP-RHPreformatsan𝑆-stageREOSSPto𝑆−𝐿 totalsubproblems,
+and the cumulative solution of the REOSSP-RHP is composed of the solutions to each subproblem. Within each
+subproblem,theparameterℓ ∈ L = {𝑠,...,𝑠+𝐿}isusedtodenotethelookaheadstagewithinasubproblem,replacing
+the𝑠usedintheREOSSP(e.g.,𝑉ℓ𝑘 and𝑐ℓ𝑘).
+𝑡𝑗𝑝 𝑖𝑗
+Certainparametersthatarerelevantthroughouttheentirescheduledurationmustbeupdatedwithineachsubproblem
+oftheREOSSP-RHP.Firstly,themaximumtransfercostbudgetofeachsubproblemdependsontheorbitalmaneuvers
+performedwithinprevioussubproblems;therefore,themaximumtransfercostbudgetofeachsubproblemisgiven
+as𝑐𝑠𝑘 ,whichisobtainedviaEq.(15a),where𝑥˜𝑛𝑘 istheoptimalorbitalmaneuverdecisionvariablefromprevious
+max 𝑖𝑗
+subproblems. Secondly,theinitialsatelliteorbitalslotsofeachcontrolstagedependontheorbitalmaneuversperformed
+withinprevioussubproblems;therefore,thesetJ ˜𝑠−1,𝑘 isdefinedaccordingtoEq.(15b). Finally,theinitialdatastorage
+andbatterystoragevaluesdependuponthetasksperformedwithinprevioussubproblems,whereinthesevalueswillbe
+assignedas𝑑𝑠𝑘 and𝑏𝑠𝑘 obtainedviaEqs.(15c)and(15d),respectively. InEqs.(15c)and(15d),thedecisionvariables
+1 1
+𝑦˜𝑛𝑘,𝑞˜𝑛𝑘,andℎ˜𝑛𝑘 correspondtotheoptimaldecisionvariablesoftargetobservation,groundstationdownlink,andsolar
+𝑡𝑝 𝑡𝑔 𝑡
+chargingwithinprevioussubproblems,respectively. Withrespecttothefirststage𝑠 =1,allvaluesareassumedtobe
+thesameasintheREOSSPsuchthat𝑐1
+m
+𝑘
+ax
+=𝑐
+m
+𝑘
+ax
+,∀𝑘 ∈K,𝑑
+1
+1𝑘 = 𝐷
+m
+𝑘
+in
+,∀𝑘 ∈K,and𝑏1
+1
+𝑘 = 𝐵
+m
+𝑘
+ax
+,∀𝑘 ∈K.
+𝑠−1
+𝑐𝑠𝑘 =𝑐𝑘 − ∑︁ ∑︁ ∑︁ 𝑐𝑛𝑘𝑥˜𝑛𝑘 (15a)
+max max 𝑖𝑗 𝑖𝑗
+𝑛=1𝑖∈J𝑛−1,𝑘 𝑗∈J𝑛𝑘
+J ˜𝑠−1,𝑘 ≔ {𝑗 :𝑥˜𝑠−1,𝑘 =1,𝑖 ∈ J𝑠−2,𝑘, 𝑗 ∈ J𝑠−1,𝑘} (15b)
+𝑖𝑗
+𝑠−1 𝑠−1
+𝑑 1 𝑠𝑘 = 𝐷 m 𝑘 in + ∑︁ ∑︁ ∑︁ 𝐷 obs 𝑦˜ 𝑡 𝑛 𝑝 𝑘 − ∑︁ ∑︁ ∑︁ 𝐷 comm 𝑞˜ 𝑡 𝑛 𝑔 𝑘 (15c)
+𝑛=1𝑡∈T𝑛𝑝∈P 𝑛=1𝑡∈T𝑛𝑔∈G
+𝑠−1 𝑠−1
+𝑏 1 𝑠𝑘 = 𝐵 m 𝑘 ax + ∑︁ ∑︁ 𝐵 charge ℎ˜ 𝑡 𝑛𝑘 − ∑︁ ∑︁ ∑︁ 𝐵 obs 𝑦˜ 𝑡 𝑛 𝑝 𝑘
+𝑛=1𝑡∈T𝑛 𝑛=1𝑡∈T𝑛𝑝∈P
+(15d)
+𝑠−1 𝑠−1
+− ∑︁ ∑︁ ∑︁ 𝐵 comm 𝑞˜ 𝑡 𝑛 𝑔 𝑘 − ∑︁ ∑︁ ∑︁ 𝐵 recon 𝑥˜ 𝑖 𝑛 𝑗 𝑘 −(𝑠−1)𝑇𝑠𝐵 time
+𝑛=1𝑡∈T𝑛𝑔∈G 𝑛=1𝑖∈J𝑛−1,𝑘 𝑗∈J𝑛𝑘
+18
+--- PAGE 19 ---
+A.DecisionVariablesandIndicatorVariables
+EachsubproblemRHP(𝑠,𝐿)containsthesamedecisionandindicatorvariablesastheREOSSP,withadditional
+considerationthatJℓ−1,𝑘 isonlyasingletonsetwhen𝑠 =1.
+𝑥ℓ𝑘 ∈ {0,1}, ∀ℓ ∈ L,∀𝑘 ∈K,∀𝑖 ∈ Jℓ−1,𝑘,∀𝑗 ∈ Jℓ𝑘 (16a)
+𝑖𝑗
+𝑦ℓ𝑘 ∈ {0,1}, ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑝 ∈ P,∀𝑘 ∈K (16b)
+𝑡𝑝
+𝑞ℓ𝑘 ∈ {0,1}, ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑔 ∈ G,∀𝑘 ∈K (16c)
+𝑡𝑔
+ℎℓ𝑘 ∈ {0,1}, ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (16d)
+𝑡
+𝑑ℓ𝑘 ∈ [𝐷𝑘 ,𝐷𝑘 ], ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (16e)
+𝑡 min max
+𝑏ℓ𝑘 ∈ [𝐵𝑘 ,𝐵𝑘 ], ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (16f)
+𝑡 min max
+B.ObjectiveFunction
+AswiththeREOSSP,theobjectivefunctionofeachsubproblemRHP(𝑠,𝐿)maximizesthenumberofobservations
+andsubsequentdownlinkoccurrencesofdatatogroundstationswithweighting𝐶 toprioritizethedownlinkofdata.
+Theobjectivefunctionvalueofeachsubproblemisdenotedas𝑧𝑠 obtainedvia
+RHP
+𝑧𝑠 = ∑︁ ∑︁ ∑︁ (cid:169) ∑︁ 𝐶𝑞ℓ𝑘 + ∑︁ 𝑦ℓ𝑘(cid:170) (17)
+RHP (cid:173) 𝑡𝑔 𝑡𝑝(cid:174)
+𝑘∈Kℓ∈L𝑡∈Tℓ 𝑔∈G 𝑝∈P
+(cid:171) (cid:172)
+where 𝑧𝑠 istheobjectivefunctionvalueofsubproblem 𝑠. Additionally,afigureofmerit 𝑍 isdefinedforthe
+RHP RHP
+REOSSP-RHPattheendofthissectionrelativetotheoptimalsolutiontoeachsubproblem. ThesubscriptRHPisused
+todistinguishbetweentheobjectivefunctionvaluesandfiguresofmeritfortheEOSSPandREOSSP.
+C.Constraints
+EachsubproblemRHP(𝑠,𝐿)expandsthefunctionalityoftheconstraintsoftheREOSSPaccordingtotheupdating
+equationsEq.(15),whichupdatekeyparametersbetweensubproblems.
+19
+--- PAGE 20 ---
+1. OrbitalManeuverPathContinuityConstraints
+Thefirstsetofconstraintsmirrorconstraints(10),whileconstraints(18a)and(18c)dependontheupdatedparameters
+J ˜𝑠−1,𝑘 and𝑐𝑠𝑘 ,respectively.
+max
+∑︁ 𝑥𝑠𝑘 =1, ∀𝑘 ∈K,∀𝑖 ∈ J ˜𝑠−1,𝑘 (18a)
+𝑖𝑗
+𝑗∈J𝑠𝑘
+∑︁ 𝑥ℓ+1,𝑘 − ∑︁ 𝑥ℓ𝑘 =0, ∀ℓ ∈ L\{𝑠+𝐿},∀𝑘 ∈K,∀𝑖 ∈ Jℓ𝑘 (18b)
+𝑖𝑗 𝑗′𝑖
+𝑗∈Jℓ+1,𝑘 𝑗′∈Jℓ−1,𝑘
+∑︁ ∑︁ ∑︁ 𝑐ℓ𝑘𝑥ℓ𝑘 ≤𝑐𝑠𝑘 , ∀𝑘 ∈K (18c)
+𝑖𝑗 𝑖𝑗 max
+ℓ∈L𝑖∈Jℓ−1,𝑘 𝑗∈Jℓ𝑘
+2. TimeWindowConstraints
+Thesecondsetofconstraintsdirectlymirrorconstraints(11)relatingtoVTWsandtaskperformanceopportunities.
+∑︁ ∑︁ 𝑉ℓ𝑘 𝑥ℓ𝑘 ≥ 𝑦ℓ𝑘, ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑝 ∈ P,∀𝑘 ∈K (19a)
+𝑡𝑗𝑝 𝑖𝑗 𝑡𝑝
+𝑖∈Jℓ−1,𝑘 𝑗∈Jℓ𝑘
+∑︁ ∑︁ 𝑊ℓ𝑘 𝑥ℓ𝑘 ≥𝑞ℓ𝑘, ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑔 ∈ G,∀𝑘 ∈K (19b)
+𝑡𝑗𝑔 𝑖𝑗 𝑡𝑔
+𝑖∈Jℓ−1,𝑘 𝑗∈Jℓ𝑘
+∑︁ ∑︁ 𝐻ℓ𝑘𝑥ℓ𝑘 ≥ ℎℓ𝑘, ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (19c)
+𝑡𝑗 𝑖𝑗 𝑡
+𝑖∈Jℓ−1,𝑘 𝑗∈Jℓ𝑘
+∑︁ 𝑦ℓ𝑘 + ∑︁ 𝑞ℓ𝑘 +ℎℓ𝑘 ≤1, ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (19d)
+𝑡𝑝 𝑡𝑔 𝑡
+𝑝∈P 𝑔∈G
+3. DataTrackingandStorageConstraints
+ThedatatrackingandstorageconstraintsineachsubproblemRHP(𝑠,𝐿)closelymirrorconstraints(12),withfurther
+breakdownpertainingtotheconsiderationoftheupdatedparameter𝑑𝑠𝑘 fromEq.(15c). Assuch,constraints(20a)
+1
+accountfortheupdatedparameter,constraints(20b)accountfortherestofthe𝑠stage,constraints(20c)accountfortimes
+withineachotherstage,andconstraints(20d)accountforthestagegaps. Constraints(20e)and(20f)areunchanged
+apartfromtheconsiderationofℓ.
+20
+--- PAGE 21 ---
+𝑑 2 𝑠𝑘 = 𝑑 1 𝑠𝑘 + ∑︁ 𝐷 obs 𝑦 1 𝑠𝑘 𝑝 − ∑︁ 𝐷 comm 𝑞 1 𝑠 𝑔 𝑘, ∀𝑘 ∈K (20a)
+𝑝∈P 𝑔∈G
+𝑑 𝑡 𝑠 + 𝑘 1 = 𝑑 𝑡 𝑠𝑘 + ∑︁ 𝐷 obs 𝑦 𝑡 𝑠 𝑝 𝑘 − ∑︁ 𝐷 comm 𝑞 𝑡 𝑠 𝑔 𝑘, ∀𝑘 ∈K,∀𝑡 ∈ T𝑠\{1,𝑇𝑠} (20b)
+𝑝∈P 𝑔∈G
+𝑑 𝑡 ℓ + 𝑘 1 = 𝑑 𝑡 ℓ𝑘 + ∑︁ 𝐷 obs 𝑦ℓ 𝑡𝑝 𝑘 − ∑︁ 𝐷 comm 𝑞ℓ 𝑡𝑔 𝑘, ∀ℓ ∈ L\{𝑠},∀𝑡 ∈ Tℓ \{𝑇ℓ},∀𝑘 ∈K (20c)
+𝑝∈P 𝑔∈G
+𝑑 1 ℓ+1,𝑘 = 𝑑 𝑇 ℓ𝑘 ℓ + ∑︁ 𝐷 obs 𝑦 𝑇 ℓ𝑘 ℓ𝑝 − ∑︁ 𝐷 comm 𝑞 𝑇 ℓ𝑘 ℓ𝑔 , ∀ℓ ∈ L\{𝑠+𝐿},∀𝑘 ∈K (20d)
+𝑝∈P 𝑔∈G
+𝑑 𝑡 ℓ𝑘 + ∑︁ 𝐷 obs 𝑦ℓ 𝑡𝑝 𝑘 ≤ 𝐷 m 𝑘 ax , ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (20e)
+𝑝∈P
+𝑑 𝑡 ℓ𝑘 − ∑︁ 𝐷 comm 𝑞ℓ 𝑡𝑔 𝑘 ≥ 𝐷 m 𝑘 in , ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (20f)
+𝑔∈G
+4. BatteryTrackingConstraints
+ThebatterytrackingconstraintsofeachsubproblemRHP(𝑠,𝐿)alsocloselymirrorconstraints(13),withsimilar
+breakdownrelativetotheupdatedparameter𝑏𝑠𝑘 fromEq.(15d). Constraints(21a)accountfortheupdatedparameter,
+1
+constraints(21b)accountfortherestofthe 𝑠 stage, constraints(21c)accountfortimeswithinallotherstages, and
+constraints(21d)accountforthestagegaps.
+𝑏 2 𝑠𝑘 = 𝑏 1 𝑠𝑘 +𝐵 charge ℎ 1 𝑠𝑘 − ∑︁ 𝐵 obs 𝑦 1 𝑠𝑘 𝑝 − ∑︁ 𝐵 comm 𝑞 1 𝑠 𝑔 𝑘 −𝐵 time , ∀𝑘 ∈K (21a)
+𝑝∈P 𝑔∈G
+𝑏 𝑡 𝑠 + 𝑘 1 = 𝑏 𝑡 𝑠𝑘 +𝐵 charge ℎ 𝑡 𝑠𝑘 − ∑︁ 𝐵 obs 𝑦 𝑡 𝑠 𝑝 𝑘 − ∑︁ 𝐵 comm 𝑞 𝑡 𝑠 𝑔 𝑘 −𝐵 time , ∀𝑡 ∈ T𝑠\{1,𝑇𝑠},∀𝑘 ∈K (21b)
+𝑝∈P 𝑔∈G
+𝑏ℓ 𝑡+ 𝑘 1 = 𝑏ℓ 𝑡 𝑘 +𝐵 charge ℎℓ 𝑡 𝑘 − ∑︁ 𝐵 obs 𝑦ℓ 𝑡𝑝 𝑘 − ∑︁ 𝐵 comm 𝑞ℓ 𝑡𝑔 𝑘 −𝐵 time , ∀ℓ ∈ L\{𝑠},∀𝑡 ∈ Tℓ \{𝑇ℓ},∀𝑘 ∈K (21c)
+𝑝∈P 𝑔∈G
+𝑏ℓ 1 +1,𝑘 = 𝑏 𝑇 ℓ𝑘 ℓ +𝐵 charge ℎ 𝑇 ℓ𝑘 ℓ − ∑︁ 𝐵 obs 𝑦 𝑇 ℓ𝑘 ℓ𝑝 − ∑︁ 𝐵 comm 𝑞 𝑇 ℓ𝑘 ℓ𝑔 −
+𝑝∈P 𝑔∈G
+∀ℓ ∈ L\{𝑠+𝐿},∀𝑘 ∈K (21d)
+∑︁ ∑︁ 𝐵
+recon
+𝑥
+𝑖
+ℓ
+𝑗
++1,𝑘 −𝐵
+time
+,
+𝑖∈Jℓ𝑘 𝑗∈Jℓ+1,𝑘
+21
+--- PAGE 22 ---
+5. BatteryStorageConstraints
+Finally,thebatterystorageconstraintsofeachsubproblemRHP(𝑠,𝐿)directlymirrorconstraints(14)forthefeasible
+restrictionofbatterycapacities.
+𝑏ℓ 𝑡 𝑘 +𝐵 charge ℎℓ 𝑡 𝑘 ≤ 𝐵 m 𝑘 ax , ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (22a)
+𝑏ℓ 𝑡 𝑘 − ∑︁ 𝐵 obs 𝑦ℓ 𝑡𝑝 𝑘 − ∑︁ 𝐵 comm 𝑞ℓ 𝑡𝑔 𝑘 −𝐵 time ≥ 𝐵 m 𝑘 in , ∀ℓ ∈ L,∀𝑡 ∈ Tℓ,∀𝑘 ∈K (22b)
+𝑝∈P 𝑔∈G
+𝑏 𝑇 ℓ𝑘 ℓ − ∑︁ 𝐵 obs 𝑦 𝑇 ℓ𝑘 ℓ𝑝 − ∑︁ 𝐵 comm 𝑞 𝑇 ℓ𝑘 ℓ𝑔 −
+𝑝∈P 𝑔∈G
+∀ℓ ∈ L\{𝑠+𝐿},∀𝑘 ∈K (22c)
+∑︁ ∑︁ 𝐵 recon 𝑥 𝑖 ℓ 𝑗 +1,𝑘 −𝐵 time ≥ 𝐵 m 𝑘 in ,
+𝑖∈Jℓ𝑘 𝑗∈Jℓ+1,𝑘
+𝑏 1 𝑠𝑘 − ∑︁ ∑︁ 𝐵 recon 𝑥 𝑖 𝑠 𝑗 𝑘 ≥ 𝐵 m 𝑘 in , ∀𝑘 ∈K (22d)
+𝑖∈J𝑠−1,𝑘 𝑗∈J𝑠𝑘
+D.FullFormulation
+Withthedefinitionoftheobjectivefunction,constraints,anddecisionvariables,subproblemRHP(𝑠,𝐿)isgivenas
+max 𝑧𝑠
+RHP
+(RHP(𝑠,𝐿))
+s.t. Constraints(16)–(22)
+Withineachsubproblem,theinitialconditionsofthecontrolstage 𝑠 areupdatedusingEqs.(15). Thesubproblem
+RHP(𝑠,𝐿)isthensolvediterativelyforallcontrolstages𝑠 ∈ {1,2,...,𝑆−𝐿}throughtheuseofthefullREOSSP-RHP
+algorithm,definedinAlgorithm1,wheretheobjectiveofeachsubproblemRHP(𝑠,𝐿)istomaximizethenumberof
+downlinkoccurrencestoanygroundstationandthenumberoftargetobservations,withaheavierweightingonthe
+numberofdownlinkoccurrences. Theconstraintsrestrictthedataandbatterystoragevaluesofeachsatellite,aswellas
+limitthepropellantbudgetfororbitalmaneuvers. Uponobtainmentofthesolutionofeachsubproblem,theoptimal
+decisionvariablesforthefirststageofeachsubproblemareappendedlinearlywithinthetimehorizontoobtaintheset
+ofoptimaldecisionvariablesthroughouttheentiretimehorizon,givenas(𝑥˜𝑠𝑘,𝑦˜𝑠𝑘,𝑞˜𝑠𝑘,ℎ˜𝑠𝑘,𝑑˜𝑠𝑘,𝑏˜𝑠𝑘)inAlgorithm1.
+𝑖𝑗 𝑡𝑝 𝑡𝑔 𝑡 𝑡 𝑡
+TheREOSSP-RHPprovidesthescheduleofeachsatellite,includingthecharging,observing,downlinking,andorbital
+maneuveringsequencetoprovideacompleteoverviewofthetasksperformedbyeachsatellite. TheREOSSP-RHP
+includesafigureofmeritfoundusingtheoptimalsolution,correspondingtotheamountofdatadownlinkedtoground
+stationsbytheoptimaldecisionvariable𝑞˜𝑠𝑘 andobtainedvia
+𝑡𝑔
+22
+--- PAGE 23 ---
+𝑍 RHP = ∑︁ ∑︁ ∑︁ ∑︁ 𝐷 comm 𝑞˜ 𝑡 𝑠 𝑔 𝑘 (23)
+𝑘∈K𝑠∈S\{0}𝑡∈T𝑠𝑔∈G
+Algorithm1:REOSSP-RHP
+1
+for𝑠 =1,...,𝑆−𝐿−1do
+2 if 𝑠 ≥2then
+3
+Update𝑐
+m
+𝑠𝑘
+ax
+,J ˜𝑠−1,𝑘,𝑑
+1
+𝑠𝑘,and𝑏
+1
+𝑠𝑘 UsingEq.(15)
+4
+SolveRHP(𝑠,𝐿)andstore: 𝑧
+R
+𝑠
+HP
+and(𝑥˜
+𝑖
+𝑠
+𝑗
+𝑘,𝑦˜
+𝑡
+𝑠
+𝑝
+𝑘,𝑞˜
+𝑡
+𝑠
+𝑔
+𝑘,ℎ˜
+𝑡
+𝑠𝑘,𝑑˜
+𝑡
+𝑠𝑘,𝑏˜
+𝑡
+𝑠𝑘)
+5
+𝑠 ←𝑆−𝐿
+6
+SolveRHP(𝑆−𝐿,𝐿)andstore: {𝑧1
+RHP
+,...,𝑧
+R
+𝑆
+HP
+}and
+(𝑥˜𝑠𝑘,𝑦˜𝑠𝑘,𝑞˜𝑠𝑘,ℎ˜𝑠𝑘,𝑑˜𝑠𝑘,𝑏˜𝑠𝑘)
+≔
+{(𝑥˜1𝑘,𝑦˜1𝑘,𝑞˜1𝑘,ℎ˜1𝑘,𝑑˜1𝑘,𝑏˜1𝑘),...,(𝑥˜𝑆𝑘,𝑦˜𝑆𝑘,𝑞˜𝑆𝑘,ℎ˜𝑆𝑘,𝑑˜𝑆𝑘,𝑏˜𝑆𝑘)}
+𝑖𝑗 𝑡𝑝 𝑡𝑔 𝑡 𝑡 𝑡 𝑖𝑗 𝑡𝑝 𝑡𝑔 𝑡 𝑡 𝑡 𝑖𝑗 𝑡𝑝 𝑡𝑔 𝑡 𝑡 𝑡
+7
+return(𝑥˜
+𝑖
+𝑠
+𝑗
+𝑘,𝑦˜
+𝑡
+𝑠
+𝑝
+𝑘,𝑞˜
+𝑡
+𝑠
+𝑔
+𝑘,ℎ˜
+𝑡
+𝑠𝑘,𝑑˜
+𝑡
+𝑠𝑘,𝑏˜
+𝑡
+𝑠𝑘)
+V.ComputationalExperiments
+TheREOSSP,solvedusingacommercialsoftware(thereforetheoreticallyreturninganexactoptimalsolutionif
+givenadequatecomputationalresourcesandruntime)andreferredtoastheREOSSP-Exact,andREOSSP-RHPare
+benchmarkedagainsttheEOSSPandcomparedtooneanotherthroughawidevarietyofschedulecharacteristicsto
+evaluatetheperformanceofeachformulationrelativetoabaselinenonreconfigurableschedulingsolution. Benchmarking
+experiments are conducted in two ways: including random instances of randomly varied schedule characteristics
+andacasestudyinvolvingHurricaneSandy, ahighlydynamicnaturaldisaster. Theobjectivefunctionvalues, 𝑧 ,
+𝐸
+𝑧
+𝑅
+,and𝑧
+RHP
+fortheEOSSP,REOSSP-Exact,andREOSSP-RHP,respectively,comparetheperformanceofeach
+schedulingproblem. Additionally,thefiguresofmerit,VTWoftargetsandgroundstations,amountofdataobserved
+butnotdownlinked,amountofbatteryrequiredtoperformoperations,andtheorbitalmaneuvercostconsumedbythe
+satellitesintheresultingschedulesoftheREOSSP-ExactandREOSSP-RHParepresentedforanalysis. Finally,the
+resultantscheduleisusedtogaininsightintotheorderoftaskperformance,especiallyconcerningthecasestudy. All
+computationalexperimentsassumedeterministicproblems,wherecharacteristicsofascheduleareknownapriori.
+AllrandominstancesandcasestudiesarecomputedonaplatformequippedwithanIntelCorei9-129002.4GHz
+(basefrequency)CPUprocessor(16coresand24logicalprocessors)and64GBofRAM.Whilethesespecificationsare
+notindicativeofthecapabilitiesofasatelliteforonboardscheduling,theyarerelevanttodemonstratethecomputational
+efficiencyoftheformulationstested. Additionally,theEOSSP,REOSSP-Exact,andREOSSP-RHPareprogrammed
+inMATLAB[40]withtheuseofYALMIP[41]andaresolvedusingthecommercialsoftwarepackageGurobiOptimizer
+(version12.0.0)withdefaultsettingsapartfromanassignedruntime.
+23
+--- PAGE 24 ---
+A.RandomInstances
+Asetof24randominstanceswithrandomschedulecharacteristicsdemonstratesthecapabilityofeachscheduling
+probleminresponsetovariedparameters. Eachinstancedrawscombinationsofgivenparameters,creatingvariationin
+thenumberofstages,satellites,andorbitalslotoptionsavailable. Thesetsforsuchcombinationsare𝑆 ∈ {8,9,12},
+𝐾 ∈ {5,6},and𝐽𝑠𝑘 ∈ {20,40,60,80},∀𝑠 ∈S\{0},∀𝑘 ∈K,respectively. TheGurobiruntimelimitfortheEOSSP,
+REOSSP-Exact,andeachsubproblemoftheREOSSP-RHPissetto60min(3600s).
+1. DesignofRandomInstances
+Eachofthe24randominstancesisuniquetoensurethatnoinstanceshaveidenticalparameters,providingvariation
+ingroundstationposition,satelliteorbits,andtargetpositionsuchthateachschedulingproblemiscomparedundera
+widespectrumofconditions,thusnotlimitingtheevaluationtoapossiblybiasedsetofconditionsandprovidinga
+dynamictargetthroughvariedavailablerewards. All𝐾 satellitesareassignedinclinedcircularorbitswithrandom
+orbitalelementswithinspecifiedranges,suchasanaltitudebetween600and1200km,inclinationbetween40and
+80deg,rightascensionofascendingnode(RAAN)between0and360deg,andargumentoflatitudebetween0and
+360deg. Additionally,all𝐽𝑠𝑘 orbitalslotsvaryonlyintheargumentoflatitude(hereinreferredtoasphase)andare
+equallyspacedbetween0and360degwiththeinclusionoftheinitialphase. Thenumberofgroundstationsissetas
+twodistinctgroundstations(𝐺 =2)andeachisrandomlyassignedalatitudebetween80degSouthand80degNorth
+andalongitudebetween180degWestand180degEast,withanextraconditionspecifyingthatthegroundstationmust
+beonland. Thenumberoftargetsissetas12distincttargets(𝑃 =12)whereeachtargetpositionvariesonthesame
+latitudeandlongituderangeasthegroundstations,withallowanceoftargetsonwater. Eachtargetisassignedabinary
+maskingwithinthevisibilitymatrix𝑉𝑘 and𝑉𝑠𝑘 suchthateachtargetonlyhasavisibilityvalueofoneonatime
+𝑡𝑝 𝑡𝑗𝑝
+intervalof𝑇/𝑃,thusallowingexactlyonetargettobeconsideredasavailableateachtimestep.
+Certainparametersarefixedineachofthe24randominstances,whereallfixedparametersareincludedinTable2,
+withnecessaryexplanationfollowing. Both𝐷 and𝐷 areconvertedfromvaluesinMbpstodiscretevaluesin
+obs comm
+MBcorrespondingtoasingletimestep. Additionally,𝐷 istheaverageofthetwoobservationratesfromRef.[42],
+obs
+and𝐷 istheX-bandfrequencyoftheSSTL-300S1spacecraftcapableofBinaryPhase-shiftkeyingmodulation
+comm
+fromRef.[43]. Duetothesmalldifferencebetween 𝐷 and 𝐷 , notalldataobservedinasingleoccurrence
+obs comm
+canbedownlinkedinasingleoccurrence,thusleavingasmallamountofdatainstorageattheendoftheschedule
+horizon. Furthermore,𝐵 ,𝐵 ,𝐵 ,𝐵 ,and𝐵 areconvertedfromkWtokJ,similarlyto𝐷 and𝐷 .
+obs comm recon charge time obs comm
+Additionally,thevalueof𝐵𝑘 isconvertedfroma15A-hBatteryusingtheaveragebetween28and33Vasobtained
+max
+fromRef.[43],andthevalueof𝐵 isgeneratedusingthespecificationof2.44m2galliumarsenidesolarcellsfrom
+charge
+Ref.[43]forpowergenerationat160to180W/m2[44]inwhichtheaverageof170Wisused.
+Inadditiontotheparameterslisted,keymethodsareusedtogenerate𝑉,𝑊,𝐻,and𝑐𝑠𝑘. Visibilitymatricessuchas
+𝑖𝑗
+24
+--- PAGE 25 ---
+Table2 Fixedrandominstanceparameters
+Parameter Value Units Parameter Value Units
+Schedulestarttime January1st,2025,00:00:00,UTC — 𝑇 14 days
+𝑟
+Δ𝑡 100 s 𝑇 12096 —
+𝐷𝑘 ,∀𝑘 ∈K 0 GB 𝐷𝑘 ,∀𝑘 ∈K 128[43] GB
+min max
+𝐷 102.50[42] MB 𝐷 100[43] MB
+obs comm
+𝐵𝑘 ,∀𝑘 ∈K 0 kJ 𝐵𝑘 ,∀𝑘 ∈K 1647[43] kJ
+min max
+𝐵 16.26[42] kJ 𝐵 1.20[43] kJ
+obs comm
+𝐵 0.50[43] kJ 𝐵 41.48[43] kJ
+recon charge
+𝐵 time 2[43] kJ 𝑐 m 𝑘 ax ,∀𝑘 ∈K 750 m/s
+𝐶 2 — 𝐿 1 —
+𝑉 and𝐺 aregeneratedthroughtheuseoftheAerospaceToolbox[40]bypropagatingsatelliteorbitsandorbitalslots,
+assigningeachsatelliteaconicalfieldofview(FOV)of45degfortargetobservation,aconicalcommunicationrangeof
+120degforgroundstationcommunication,andevaluatingtheaccessfunction. Thisaccessfunctionreturnsabinary
+valuerepresentingwhetheragiventargetobject(eitheratargetorgroundstation)iswithinthesatelliteFOVatany
+timestepoverthescheduleduration. Separately,thevisibilitymatrix𝐻 isgeneratedthroughthesamepropagationand
+theuseoftheeclipsefunction. Thiseclipsefunctionreturnsavaluebetweenzeroandonerepresentingsunlight
+exposureviathedualconemethod,withdirectsunlightassignedone,penumbraassignedbetweenzeroandone,and
+umbraassignedzero[45]. ThepropagatorusedistheSimplifiedGeneralPerturbation4(SGP4)model. Finally,the
+transfercost𝑐𝑠𝑘 iscomputedthroughtheuseofthecircularcoplanarphasingproblemfoundinRef.[46],inwhich
+𝑖𝑗
+orbitalslot𝑖 ∈ J𝑠−1,𝑘 and 𝑗 ∈ J𝑠𝑘 aredefinedastheboundaryconditions.
+Itshouldbenotedthatthechosenparametersfortherandominstancesarespeciallyselectedtodemonstratethe
+use and results of the formulated scheduling problems. Parameters such as constellation formation, satellite FOV,
+communicationrange,maximumtransferbudget,andothers,canbechosentomodeldesiredEOapplications.
+2. RandomInstanceResults
+Table3containstheresultsofall24randominstanceswithassociatedspecifiedvariedparametersandIDnumbers.
+The results include the optimal objective function values (or sum of all subproblem objective function values for
+the REOSSP-RHP), the figures of merit, and the computational runtime for the EOSSP, REOSSP-Exact, and
+REOSSP-RHP.Thepercentimprovementofonescheduleresultantobjectivefunctionvalueoveranotherisdesignated
+by𝛾. Additionally,theresultsincludethetotalpropellantusedbytheREOSSP-ExactandREOSSP-RHPinkm/s.
+Finally, theresultsincludetheminimum, maximum, mean, andstandarddeviationvaluesoftheruntime, thetotal
+propellantused,and𝛾values,wherethereportedvaluesoftheREOSSP-Exactomittheinstancesthatdidnotresultin
+afeasiblesolution.
+25
+--- PAGE 26 ---
+stluserecnatsnimodnaR
+3elbaT
+PHR-PSSOER
+tcaxE-PSSOER
+PSSOE
+ecnatsnI
+%,𝛾
+%,𝛾
+s/mk,𝑘
+𝑗 ℓ 𝑖 𝑐(cid:205)
+nim,emitnuR
+BG,
+PHR𝑍
+PHR
+𝑠𝑧
+1=
+𝑆 𝑠 (cid:205)
+%,𝛾
+s/mk,𝑘
+𝑗 𝑠 𝑖 𝑐(cid:205)
+nim,emitnuR
+BG,
+𝑅
+𝑍
+𝑅
+𝑧
+nim,emitnuR
+BG,
+𝐸
+𝑍
+𝐸
+𝑧
+𝑘𝑠𝐽
+𝐾
+𝑆
+DI
+revO
+revO
+desulatoT
+revO
+desulatoT
+PSSOE
+PSSOER
+tnalleporp
+PSSOE
+tnalleporp
+tcaxE-
+28.85
+84.11-
+86.3
+19.1
+04.5
+261
+14.97
+15.3
+55.4
+01.6
+381
+10.1
+04.3
+201
+02
+5
+8
+1
+00.57
+05.21-
+36.3
+20.5
+04.8
+252
+00.001
+69.2
+61.72
+06.9
+882
+12.1
+08.4
+441
+04
+5
+8
+2
+15.48
+—
+66.3
+42.81
+01.31
+393
+—
+—
+51.06
+—
+a—
+97.3
+01.7
+312
+06
+5
+8
+3
+67.95
+—
+17.3
+54.45
+01.31
+393
+—
+—
+b—
+—
+—
+68.5
+02.8
+642
+08
+5
+8
+4
+57.86
+—
+53.4
+04.41
+08.01
+523
+—
+—
+21.06
+—
+—
+86.7
+04.6
+391
+02
+6
+8
+5
+57.86
+07.41-
+44.4
+41.51
+08.01
+523
+44.89
+77.3
+35.33
+07.21
+183
+50.9
+04.6
+291
+04
+6
+8
+6
+64.19
+—
+34.4
+18.22
+07.51
+074
+—
+—
+12.06
+—
+—
+09.11
+02.8
+642
+06
+6
+8
+7
+81.86
+—
+64.4
+16.76
+01.11
+333
+—
+—
+56.06
+—
+—
+75.21
+06.6
+891
+08
+6
+8
+8
+24.47
+46.9-
+75.3
+97.31
+05.7
+522
+20.39
+01.3
+31.12
+03.8
+942
+08.2
+03.4
+921
+02
+5
+9
+9
+39.78
+—
+07.3
+60.13
+09.01
+823
+—
+—
+91.06
+—
+—
+84.8
+08.5
+671
+04
+5
+9
+01
+33.38
+71.9-
+86.3
+62.8
+09.9
+792
+58.101
+91.3
+48.22
+09.01
+723
+17.5
+04.5
+261
+06
+5
+9
+11
+32.69
+—
+17.3
+83.94
+04.01
+213
+—
+—
+28.06
+—
+—
+71.7
+03.5
+951
+08
+5
+9
+21
+42.54
+28.61-
+62.4
+34.41
+02.21
+663
+00.57
+61.4
+33.41
+07.41
+044
+26.1
+04.8
+252
+02
+6
+9
+31
+26.48
+52.31-
+83.4
+00.12
+04.41
+234
+28.211
+15.3
+59.04
+06.61
+894
+05.4
+08.7
+432
+04
+6
+9
+41
+62.501
+—
+74.4
+86.21
+08.7
+532
+—
+—
+71.06
+—
+—
+27.3
+08.3
+511
+06
+6
+9
+51
+06.47
+—
+73.4
+23.85
+00.11
+033
+—
+—
+b—
+—
+—
+61.7
+03.6
+981
+08
+6
+9
+61
+00.68
+98.31-
+36.3
+30.5
+03.9
+972
+00.611
+97.2
+46.9
+08.01
+423
+60.1
+00.5
+051
+02
+5
+21
+71
+97.311
+94.9-
+86.3
+46.9
+04.21
+273
+12.631
+51.3
+c01.06
+07.31
+114
+47.2
+08.5
+471
+04
+5
+21
+81
+38.36
+—
+37.3
+88.8
+07.7
+132
+—
+—
+02.06
+—
+—
+53.3
+07.4
+141
+06
+5
+21
+91
+78.87
+—
+37.3
+46.45
+07.21
+183
+—
+—
+b—
+—
+—
+17.5
+01.7
+312
+08
+5
+21
+02
+98.75
+80.32-
+34.4
+40.5
+00.9
+072
+62.501
+10.4
+c11.06
+07.11
+153
+73.4
+07.5
+171
+02
+6
+21
+12
+76.611
+—
+34.4
+33.5
+07.11
+253
+—
+—
+42.06
+—
+—
+81.6
+04.5
+261
+04
+6
+21
+22
+94.35
+—
+34.4
+40.41
+02.31
+893
+—
+—
+54.06
+—
+—
+59.5
+06.8
+062
+06
+6
+21
+32
+41.67
+—
+44.4
+26.43
+05.51
+464
+—
+—
+b—
+—
+—
+70.9
+08.8
+462
+08
+6
+21
+42
+42.54
+80.32-
+75.3
+19.1
+—
+—
+00.57
+97.2
+55.4
+—
+—
+10.1
+—
+—
+muminiM
+76.611
+71.9-
+74.4
+16.76
+—
+—
+12.631
+61.4
+11.06
+—
+—
+75.21
+—
+—
+mumixaM
+60.87
+04.31-
+40.4
+47.22
+—
+—
+08.101
+14.3
+34.92
+—
+—
+35.5
+—
+—
+naeM
+71.81
+02.4
+83.0
+37.91
+—
+—
+37.71
+64.0
+04.91
+—
+—
+12.3
+—
+—
+noitaiveddradnatS
+.noituloselbisaefdeniatbonatuohtiws0063fotimilemitnurehtforeggirtehtsetacidni)-(hsadAa
+.deniatbosawnoituloselbisaefondna,derrucco)yromemfotuo(10001edocrorreiboruGb
+.ylevitcepser,%82.0dna%56.3fopaggnimmargorpregetnideximaedulcni12dna81sDI.deniatbosawnoituloselbisaefa,dehcaersaws0063fotimilemitnurehthguohtlAc
+26
+--- PAGE 27 ---
+Both the REOSSP-Exact and REOSSP-RHP outperform the EOSSP in every instance, apart from IDs
+3,5,7,8,10,12,15,19,22,and23 in which the REOSSP-Exact triggers the runtime limit of 3600s without ob-
+tainingafeasiblesolutionandIDs4,16,20,and24inwhichtheREOSSP-ExacttriggersGurobierrorcode10001
+(outofmemory),whiletheREOSSP-RHPstilloutperformstheEOSSPintheseinstances. Additionally,thereareno
+instancesinwhichtheREOSSP-RHPoutperformstheREOSSP-Exact,apartfromthoseinwhichtheREOSSP-Exact
+doesnotobtainafeasiblesolution. ThisisexpectedsincetheREOSSP-Exacthasaccesstotheentireschedulehorizon
+whenoptimizing,whiletheREOSSP-RHPonlyhasaccesstoasignificantlyreducedportionoftheschedule. However,
+theREOSSP-RHPperformscomputationssignificantlyfasterthantheREOSSP-Exactasaresultofthesignificantly
+reducedproblemscalewithineachsubproblemoftheREOSSP-RHP,requiringlesscomputationruntimeinallinstances
+apartfromID13,wheretheREOSSP-RHPrequiredapproximatelyanadditional6soverall. Thepercentimprovement
+oftheREOSSP-ExactandREOSSP-RHPovertheEOSSP,aswellastheruntimeoftheEOSSP,REOSSP-Exact,
+andREOSSP-RHP,isshownasboxchartsinFig.5aand5b,respectively. Similarfiguresdepictingthemetricsofeach
+individualinstancearelocatedinAppendixB.
+150 70
+n
+% im60
+,tn
+e m
+e v o
+rp
+m
+100
+,e
+m itn
+u r
+la
+n o 3
+4
+5
+0
+0
+0
+i
+tn e
+50 ita
+tu 20
+c re p m10
+P o
+C
+0 0
+REOSSP-RHP REOSSP-Exact EOSSP REOSSP-RHP REOSSP-Exact
+Random instance, ID Random instance, ID
+(a)PercentoftheREOSSP-ExactandREOSSP-RHPoverthe (b)RuntimeoftheEOSSP,REOSSP-Exact,andREOSSP-
+EOSSP RHP
+Fig.5 Resultsoftherandominstances.
+Statistically,theREOSSP-ExactoutperformstheEOSSPwithanaverageimprovementof101.80%withastandard
+deviationof17.73%,aminimumimprovementof0.00%(IDs3–5,7,8,10,12,15,16,19,20,22–24),andamaximum
+improvementof136.21%(ID18). Similarly,theREOSSP-RHPoutperformstheEOSSPwithanaverageimprovement
+of 78.06% with a standard deviation of 18.17%, a minimum improvement of 45.24% (ID 13), and a maximum
+improvementof116.67%(ID22). Furthermore,whiletheREOSSP-RHPperformsworsethantheREOSSP-Exactby
+anaverageof13.40%withastandarddeviationof4.20%,theREOSSP-RHPattainssignificantimprovementoverthe
+EOSSPintheeventthattheREOSSP-Exactdoesnotobtainafeasiblesolutionwithinthetimelimit,duringwhichthe
+REOSSP-RHPimprovesupontheEOSSPbyanaverageof80.41%. Additionally,theREOSSP-RHPperformsbetter
+relativetotheREOSSP-Exactwhenthenumberofstagesislowerasaresultofthelarger𝑇𝑠 valueandthuslarger
+subproblemsizeprovidingmoreprobleminformationineachsubproblem,whiletheREOSSP-RHPperformsworseas
+27
+--- PAGE 28 ---
+thenumberofstagesincreases.
+Additionally,theruntimeoftheREOSSP-ExactismuchgreaterthanthatoftheEOSSP,whiletheaverageruntime
+oftheREOSSP-RHPisslightlymorethanone-thirdoftheREOSSP-Exactruntimelimitof3600s. Contrarily,the
+runtime of the REOSSP-RHP is greater than the runtime of the REOSSP-Exact in ID 13 and the runtime of the
+REOSSP-RHP is greater than the runtime limit of the REOSSP-Exact in ID 8. Statistically, the runtime of the
+REOSSP-Exactis29.43minonaveragewithastandarddeviationof19.40min,aminimumof4.55min(ID1),anda
+maximumbeyondtheruntimelimitineachinstancewithnofeasiblesolutionobtainedaswellasIDs18and21,which
+obtainedasuboptimalfeasiblesolutionaftertriggeringtheruntimelimit. Separately,theruntimeoftheREOSSP-RHP
+islowerat22.74minonaveragewithastandarddeviationof19.73min,aminimumof1.91min(ID1),andamaximum
+of67.61min(ID8). Additionally,theminimumruntimeinstanceoftheEOSSP,REOSSP-Exact,andREOSSP-RHP
+isID1,whereinthelowestcombinationof𝐾and𝐽arepresent,whilethemaximumruntimeinstancesofeachscheduling
+problemoccurintheeventthatthelargervaluesof 𝐾 and 𝐽 arepresent. Asforthemaximumruntimeinstanceof
+theREOSSP-RHP(ID8),thehighestcombinationof𝐾 and𝐽 arepresent,while𝑆isthelowestpossiblevalue,thus
+resultinginthelargest𝑇𝑠 valueandthusthelargestsubproblemsize. AsforthoseIDswheretheREOSSP-Exactdoes
+notobtainafeasiblesolution,thecauseistwofold. Thefirstcauseoriginatesinthecomplexityoftheproblemgeometry,
+whereinsatellitevisibilityoverlapmaybecomplicated. Separately,thesecondcauseisduetothecombinatorialnature
+oftheproblem;thesolutionspaceexpandswiththeincreaseindecisionvariables,whichisheavilyinfluencedbythe
+numberofsatellitesandorbitalslotoptions.
+Finally,themainlimitationofconstellationreconfigurabilityisthefuelcostrequiredtoperformorbitalmaneuvers
+throughouttheschedulehorizon,whereintheoptimalscheduleoftheREOSSP-RHPusesmorepropellantthanthatof
+theREOSSP-Exact. TheaveragepropellantusedbytheREOSSP-Exactis3.41km/swithastandarddeviationof
+0.46km/s(withtheremovaloftheinstanceswherenofeasiblesolutionwasfound). Meanwhile,theREOSSP-RHPis
+moreexpensive,wheretheaveragepropellantusedis4.04km/swithaslightlylowerstandarddeviationof0.38km/s.
+The REOSSP-RHP is more expensive than the REOSSP-Exact on average as a result of the limited information
+presentedtoeachsubproblem,potentiallyleadingtoslightlylessoptimalorbitalmaneuverstakingplace.
+Overall,theaverageperformanceincreaseovertheEOSSPbyboththeREOSSP-ExactandREOSSP-RHPshows
+thateachsolutionmethodcangreatlyoutperformtheEOSSPdespitethelimitedfuelbudgetfororbitalmaneuvers
+andadditionalcomplexity. Additionally,thevalueoftheREOSSP-RHPisdemonstratedthroughtheattainmentofa
+feasiblesolutioninareducedamountoftimeonaverage,especiallyinthosecaseswheretheREOSSP-Exactdidnot
+obtainafeasiblesolution. Furthermore,theREOSSP-RHPoutperformstheREOSSP-Exactonaverageonaccountof
+theREOSSP-Exactinstancesthatdidnotresultinafeasiblesolution.
+28
+--- PAGE 29 ---
+B.CaseStudy-HurricaneSandy
+Inadditiontotherandominstances,HurricaneSandyisselectedforanin-depthanalysistoprovidereal-worlddata
+totheschedulingproblems. HurricaneSandyoccurredin2012andstruckmanyislandsthroughouttheCaribbean
+SeaaswellastheNortheasterncoastoftheUnitedStates,causing233deaths[47]and$65billionindamage[48].
+HurricaneSandyachievedCategoryThreestatusonOctober25at6:00AMwith115mphwindsatthepeak[49].
+1. DesignofCaseStudy
+Forthecasestudy,fixedschedulecharacteristicsareselectedratherthanrandomcharacteristicstodemonstrate
+realisticutilizationoftheschedulingproblemsfurther. Firstly,HurricaneSandyisdepictedinFig.6afromtheinitialto
+thefinaloccurrenceoftropicalstormstatusorhigher(definedascontainingwindsbetween39and73mph[50]). The
+historicalpathdatautilizedisgatheredfromRef.[49]andtrackstheeyeofthestormatanintervalof6hours,and𝑇 is
+𝑟
+setto7.25days. Consideringthetrackingconditions,thenumberoftargets(pointsalongthestormpath)forHurricane
+Sandyis𝑃 =29. Additionally,binarymaskingisappliedto𝑉𝑘 foreachtargetinchronologicalorder,suchthattarget 𝑝
+𝑡𝑝
+hasamaskingofoneattimesteps𝑡 ∈ [1+(𝑝−1)(𝑇/𝑃),𝑝(𝑇/𝑃)] andamaskingofzerootherwise. Thismasking
+conditionsimilarlyappliesfor𝑉𝑠𝑘 and𝑉ℓ𝑘 alongeachstageinthetimehorizon. Thesametimestepsize,Δ𝑡 =100s,
+𝑡𝑗𝑝 𝑡𝑗𝑝
+isusedinthecasestudy,resultinginatotalnumberoftimestepsof𝑇 =6264. Additionally,groundstationsutilizedby
+disastermonitoringsatellitesandsatelliteorbitssuitableforEOareemployed. Thegroundstationsareassignedas
+twousedbytheDisasterMonitoringConstellation,thefirstbeingtheSvalbardSatelliteStationlocatedinSwedenat
+78.23degNorthand15.41degEastandthesecondbeingasatellitestationlocatedinBoecilloSpainat41.54degNorth
+and4.70degWest[51]. Furthermore,aWalker-deltaconstellationisusedasithasbecomeacommonchoiceinrecent
+yearsforsatelliteconfigurations. TheWalker-deltaconstellationfor𝐾 =4satellitesisdefinedatanaltitudeof709km
+andtakestheform98.18deg:4/4/0,wheretheinclinationis98.18deg,andfoursatellitesarelocatedinfourorbital
+planeswithzerorelativephasingbetweensatellites. Theconstellationformationisselectedtoremainconsistentwithan
+identicalFOVcaseinRef.[52]. Thethree-dimensionallocationsofHurricaneSandyovertime,thetwoselectedground
+stations,andtheinitialsatelliteorbitsareshowninFig.6b.
+Secondly,additionalorbitalslotoptionsthatextendtochangesintheorbitalplaneandphaseareprovided. Such
+orbitalslotsallowequallyspacedchangesininclination,RAAN,andphase,inwhichtheplane-changeslotsextendinthe
+positiveandnegativedirectionoftheinitialcondition. Theresultantnumberoforbitalslotoptionsis𝐽𝑠𝑘 = 𝑓(2𝑚−1),
+where 𝑓 isthenumberofphasingoptionsand𝑚isthenumberofplane-changeoptionsineachplaneofeitherinclination
+or RAAN. The case studies make use of 𝑓 = 15 and 𝑚 = 5, resulting in 𝐽𝑠𝑘 = 135,∀𝑠 ∈ S \ {0},∀𝑘 ∈ K. A
+demonstrationoftheorbitalslotoptionspaceisshowninFig.8ofRef.[38]. Themaximumdegreeofseparation
+betweentheinitialconditionandthefurthestplane-changeoptionisdeterminedthroughtheuseofrearrangedboundary
+valueproblems(assumingtheentirebudget,𝑐𝑘 ,isconsumed)fromRef.[46]withanappliedscalingfactorof75%to
+max
+29
+--- PAGE 30 ---
+Hurricane Sandy
+e30°N
+d
+u
+tita
+L
+20°N
+1000 km
+500 mi
+105°W 90°W 75°W 60°W
+Longitude
+(a)PathofHurricaneSandy
+(b) Three-dimensional locations of Hurricane
+Sandy,groundstations,andsatellites
+Fig.6 Locationsofcasestudyparameters.
+ensurethefeasibilityofmultiplemaneuvers.
+As a result of the increase in orbital slot options, additional cost computation algorithms are employed for all
+possiblecombinationsoftransfertypes. Thisincludes1)phasingonly,2)inclinationchangeonly,3)RAANchange
+only,4)simultaneousinclinationandRAANchange,5)inclinationchangefollowedbyphasing,6)RAANchange
+followedbyphasing,and7)simultaneousinclinationandRAANchangefollowedbyphasing. Aswithphasing-only
+computations,analyticalalgorithmsfromRef.[46]areused. Finally,𝑆 =8stagesareusedintheREOSSP-Exactand
+theREOSSP-RHP.AllotherparametersandparametergenerationmethodsarekeptidenticaltothoseinSec.V.A.
+2. CaseStudyResults
+TheresultantschedulesoftheEOSSP,REOSSP-Exact,andREOSSP-RHPareshowninTables4–6,respectively.
+Thetablesdepictthehigh-levelschedulebrokendownbystage(intermsofthetimeinwhichastagewouldoccurfor
+theEOSSP),includingthenumberofobservations,downlinkoccurrences,andchargingoccurrences,aswellasthe
+variousorbitalelements(inclination𝑖,RAANΩ,andargumentoflatitude𝑢,withchangedelementshighlightedin
+boldinthearrivalstage)andthecostoforbitalmaneuversfortheREOSSP-ExactandREOSSP-RHP.Itshouldbe
+notedthatTables5and6reportthevaluesof𝑖,Ω,and𝑢belongingtoaspecificorbitalslotasdefinedatthestartofthe
+schedule,althoughpropagationwithSGP4accountsforperturbationsthroughoutthescheduleduration,includinginthe
+generationofvisibilityandorbitalmaneuvercostparameters. Furthermore,thedataandbatterystoragecapacitiesover
+timeareshownfortheEOSSP,REOSSP-Exact,andREOSSP-RHPinFigs.7–9,respectively. Theobjectivefunction
+valuesoftheEOSSP,REOSSP-Exact,andREOSSP-RHPare𝑧
+𝐸
+=25,𝑧
+𝑅
+=97,and(cid:205)𝑆
+𝑠=1
+𝑧
+RHP
+=73,respectively,
+whilethefigureofmeritvaluesfortheEOSSP,REOSSP-Exact,andREOSSP-RHPare0.80,3.20,and2.40GB,
+respectively. Itshouldbenotedthatdespitetherelativelylowamountofdatagatheredbytheconstellationwithinthe
+30
+--- PAGE 31 ---
+schedulehorizon,theschedulesonlyconcernasingletarget(HurricaneSandy)ratherthananyotherpassivemonitoring
+occurring. Additionally,theruntimeoftheEOSSP,REOSSP-Exact,andREOSSP-RHPare0.24,54.60,and6.65min,
+respectively. Assuch,theREOSSP-ExactandREOSSP-RHPimprovedupontheEOSSPinregardstotheobjective
+functionvalueby288.00%and192.00%respectively,andinregardstothefigureofmeritby300.00%and200.00%,
+respectively. Separately,theREOSSP-RHPperformed24.74%and25.00%worsethantheREOSSP-Exactregarding
+theobjectivefunctionvalueandfigureofmerit,respectively. Meanwhile,theruntimeoftheREOSSP-RHPwasonly
+12.18%theruntimeoftheREOSSP-Exact,substantiallyimprovingcomputationtimeataslightperformancecost.
+Table4 EOSSPobservation,downlink,andchargeoccurrencebystage
+Satellite State 𝑆=1 𝑆=2 𝑆=3 𝑆=4 𝑆=5 𝑆=6 𝑆=7 𝑆=8
+Observations 0 0 1 0 0 0 0 0
+1 Downlinks 0 0 0 0 0 1 0 0
+Charging 0 36 40 38 38 38 37 37
+Observations 1 1 1 0 0 1 0 0
+2 Downlinks 0 0 0 0 1 0 2 1
+Charging 1 37 43 35 50 26 36 37
+Observations 0 0 0 0 0 0 1 0
+3 Downlinks 0 0 0 0 0 0 0 1
+Charging 0 37 37 39 37 37 39 38
+Observations 0 0 0 0 0 1 0 2
+4 Downlinks 0 0 0 0 0 0 1 1
+Charging 0 37 38 37 38 52 37 56
+k=1 k=2
+500 500 2000
+B400 B400
+M
+,a2
+3
+0
+0
+0
+0 M
+,a2
+3
+0
+0
+0
+0 B
+15
+m
+0
+a
+0
+x
+ta D100 ta D100 Jk
+0
+0 1 2 3 4 5 6 7 8
+0
+0 1 2 3 4 5 6 7 8
+,y
+re 1000
+Time,t=Ts Time,t=Ts tta
+B
+k=3 k=4
+500 500 500
+B400 B400
+M300 M300
+,a200 ,a200 0
+ta D100 ta D100 0 1 2 3 4 5 6 7 8
+0 0 Time,t=Ts
+0 1 2 3 4 5 6 7 8 0 1 2 3 4 5 6 7 8
+Time,t=Ts Time,t=Ts k=1 k=2 k=3 k=4
+(b)EOSSPbatterytracking.
+(a)EOSSPdatatracking.
+Fig.7 EOSSPschedule.
+TheoptimalscheduleoftheEOSSPcontainsonlyatmostfourobservationspersatellite,withtwosatellitesonly
+obtainingasingleobservation,whichresultsinalowquantityofdataandassuchanobjectivefunctionvalueof𝑧
+𝐸
+=25
+andafigureofmeritvalueof𝑍
+𝐸
+=0.80GB. Furthermore,sincetheobjectiveistobalancetheobservationanddownlink
+ofdata,satellite4achievestwoobservationsinstageeightwhileonlydownlinkingoneoftheseobservations,resulting
+inthesatelliteretainingsomedatathatmaybedownlinkedatatimelaterthantheschedulehorizonestablished. The
+31
+--- PAGE 32 ---
+extradataretainedbysatellites1through3isaresultofthepreviouslymentioneddiscrepancybetweenthevalues𝐷
+obs
+and𝐷 ,adifferenceof2.50MBextrain𝐷 . TheextradataremainingonboardeachsatelliteisreflectedinFig.3a
+comm obs
+wheresatellite4retains107.50MB,satellite2retains10.00MB,andsatellites1and3retain2.50MB. Inaddition,the
+chargingofeachsatelliteisdominatedbythebatteryconstraintsduetothesmallnumberoftasksperformedineach
+stageandthelargeamountofpowerobtainedviacharging,asshowninFig.7b. However,thelargepeaksshownare
+notdeterminedbyaneclipseofsunlight,asanyeclipseonlylastsatmost35min,slightlymorethanone-thirdofan
+orbitalperiod. Thereasonforthelargepeaksshownisthelargevarietyoffeasiblechargingopportunitiesduetothelow
+occurrenceofaneclipseofsunlight,resultinginsomechargingschedulesincludingthelargepeaks(suchassatellites2
+and4)whileothersdonot(suchassatellites1and3).
+Table5 REOSSP-Exactobservation,downlink,andchargeoccurrencebystage.
+Satellite State 𝑆=1 𝑆=2 𝑆=3 𝑆=4 𝑆=5 𝑆=6 𝑆=7 𝑆=8
+𝑖,deg 98.18 98.18 98.18 98.18 98.18 100.33 100.33 100.33
+Ω,deg 0.00 0.00 0.00 0.00 0.00 0.00 0.00 0.00
+𝑢,deg 240 240 240 192 192 48 312 312
+1 Observations 2 0 1 1 1 2 2 0
+Donwlinks 1 0 0 1 2 2 1 2
+Charging 3 41 33 45 40 32 37 36
+Cost,m/s 189.94 0.00 0.00 66.13 0.00 365.01 101.67 0.00
+𝑖,deg 98.18 98.18 98.18 98.18 100.33 100.33 100.33 100.33
+Ω,deg 90.00 90.00 90.00 90.00 90.00 90.00 90.00 90.00
+𝑢,deg 336 336 336 336 72 336 240 168
+2 Observations 1 1 1 1 1 1 1 1
+Donwlinks 0 1 0 2 2 1 1 1
+Charging 5 37 36 40 39 39 36 36
+Cost,m/s 145.96 0.00 0.00 0.00 347.48 101.67 101.67 16.37
+𝑖,deg 98.18 98.18 98.18 98.18 98.18 98.18 98.18 98.18
+Ω,deg 177.83 177.83 177.83 177.83 177.83 177.83 177.83 177.83
+𝑢,deg 144 144 144 144 72 72 0 288
+3 Observations 1 1 0 2 0 1 1 2
+Donwlinks 0 0 2 1 1 0 1 3
+Charging 18 48 34 33 31 31 43 40
+Cost,m/s 461.58 0.00 0.00 0.00 16.37 0.00 16.37 16.37
+𝑖,deg 98.18 98.18 98.18 98.18 98.18 98.18 98.18 98.18
+Ω,deg 267.83 267.83 267.83 267.83 267.83 267.83 267.83 267.83
+𝑢,deg 96 96 96 96 96 24 24 24
+4 Observations 2 0 2 0 1 1 0 2
+Donwlinks 1 0 1 0 0 0 3 2
+Charging 5 37 38 36 37 39 39 39
+Cost,m/s 301.57 0.00 0.00 0.00 0.00 16.37 0.00 0.00
+TheoptimalscheduleoftheREOSSP-ExactperformssignificantlybetterthantheEOSSP,by288.00%interms
+oftheobjectivefunctionvalueand300.00%intermsofthefigureofmerit,includingatleasteightobservationsper
+satellite. TheREOSSP-Exactalsosuffersfromanobservationwithnosubsequentdownlinkinstageeightbysatellite4.
+Assuch,theextradataretainedbyeachsatelliteisslightlyhigherthanthatretainedbythesatellitesintheEOSSPasa
+32
+--- PAGE 33 ---
+k=1 k=2
+500 500 2000
+B400 B400
+M
+,a2
+3
+0
+0
+0
+0 M
+,a2
+3
+0
+0
+0
+0 B
+15
+m
+0
+a
+0
+x
+ta D100 ta D100 Jk
+0
+0 1 2 3 4 5 6 7 8
+0
+0 1 2 3 4 5 6 7 8
+,y
+re 1000
+Time,t=Ts Time,t=Ts tta
+B
+k=3 k=4
+500 500 500
+B400 B400
+M300 M300
+,a200 ,a200 0
+ta D100 ta D100 0 1 2 3 4 5 6 7 8
+0 0 Time,t=Ts
+0 1 2 3 4 5 6 7 8 0 1 2 3 4 5 6 7 8
+Time,t=Ts Time,t=Ts k=1 k=2 k=3 k=4
+(b)REOSSP-Exactbatterytracking
+(a)REOSSP-Exactdatatracking
+Fig.8 REOSSP-Exactschedule.
+resultofthehigherquantityofobservations. SpecificallyreflectedinFig.8a,satellite4retains120.00MB,satellite1
+retains22.50MB,andsatellites2and3retain20.00MB. Additionally,satellite4reachesthehighestdatastoragevalue
+of415.00MBwithinthefifthstage,whereinsatellite4downlinksalldatabeforethefinalstage(stageeight)atwhich
+pointtwomoreobservationsareconductedwithonlyasingledownlink,whichaccountsfortheextradataretained. The
+chargingschedule,showninFig.8b,oftheREOSSP-Exactmayappearvastlydifferentfromthepreviouscharging
+schedule;however,thisvariationisaresultofthelargevarietyoffeasiblechargingsolutionsasthelongesteclipsefor
+thisorbitalmaneuverpatternissimilartothatoftheEOSSP.Finally,theoverallcostoftheoptimalREOSSP-Exact
+scheduleconsumes2.26km/s,75.48%ofthetotalbudgetprovided,foratotalof15transfers(of32possibilitiesfor
+transfers),ofwhichfourareaplanechange(twoofwhichareinclinationraisingandtwoofwhichareRAANlowering).
+Eachsatellite,listedinorder1through4,consumed722.75m/s,713.15m/s,510.69m/s,and317.93m/s,whichis
+96.37%,95.09%,68.09%,and42.39%ofeachindividualbudget,respectively.
+k=1 k=2
+500 500 2000
+B400 B400
+M
+,a2
+3
+0
+0
+0
+0 M
+,a2
+3
+0
+0
+0
+0 B
+15
+m
+0
+a
+0
+x
+ta D100 ta D100 Jk
+0
+0 1 2 3 4 5 6 7 8
+0
+0 1 2 3 4 5 6 7 8
+,y
+re 1000
+Time,t=Ts Time,t=Ts tta
+B
+k=3 k=4
+500 500 500
+B400 B400
+M300 M300
+,a200 ,a200 0
+ta D100 ta D100 0 1 2 3 4 5 6 7 8
+0 0 Time,t=Ts
+0 1 2 3 4 5 6 7 8 0 1 2 3 4 5 6 7 8
+Time,t=Ts Time,t=Ts k=1 k=2 k=3 k=4
+(b)REOSSP-RHPbatterytracking.
+(a)REOSSP-RHPdatatracking.
+Fig.9 REOSSP-RHPschedule.
+TheoptimalscheduleoftheREOSSP-RHPalsoperformsbetterthantheEOSSP,by192.00%intermsofthe
+objectivefunctionvalueand200.00%intermsofthefigureofmerit, butslightlyworsethantheREOSSP-Exact,
+withatleastfourobservationspersatellite. TheREOSSP-RHPalsosuffersfromanobservationwithnosubsequent
+33
+--- PAGE 34 ---
+Table6 REOSSP-RHPobservation,downlink,andchargeoccurrencebystage.
+Satellite State 𝑆=1 𝑆=2 𝑆=3 𝑆=4 𝑆=5 𝑆=6 𝑆=7 𝑆=8
+𝑖,deg 98.18 98.18 98.18 98.18 98.18 98.18 98.18 98.18
+Ω,deg 0.00 357.83 357.83 357.83 357.83 357.83 357.83 357.83
+𝑢,deg 240 96 24 312 312 312 312 312
+1 Observations 2 1 1 0 0 0 0 0
+Donwlinks 0 0 2 2 0 0 0 0
+Charging 1 39 42 32 37 39 37 38
+Cost,m/s 189.94 523.08 16.37 16.37 0.00 0.00 0.00 0.00
+𝑖,deg 93.88 93.88 93.88 93.88 93.88 93.88 93.88 93.88
+Ω,deg 90.00 90.00 90.00 90.00 90.00 90.00 90.00 90.00
+𝑢,deg 192 192 192 192 120 72 72 72
+2 Observations 1 1 1 1 1 0 0 1
+Donwlinks 1 0 2 0 2 0 0 1
+Charging 2 54 26 33 39 36 42 34
+Cost,m/s 603.92 0.00 0.00 0.00 16.37 66.13 0.00 0.00
+𝑖,deg 98.18 96.03 96.03 96.03 96.03 96.03 96.03 96.03
+Ω,deg 180.00 180.00 180.00 180.00 180.00 180.00 180.00 180.00
+𝑢,deg 336 168 120 120 120 120 48 336
+3 Observations 1 1 0 2 0 2 0 1
+Donwlinks 0 1 0 3 0 2 0 1
+Charging 1 41 34 41 71 38 2 39
+Cost,m/s 145.96 466.27 66.13 0.00 0.00 0.00 16.37 16.37
+𝑖,deg 98.18 98.18 98.18 98.18 98.18 98.18 98.18 98.18
+Ω,deg 270.00 270.00 270.00 270.00 270.00 270.00 270.00 272.17
+𝑢,deg 72 72 72 72 72 0 0 336
+4 Observations 2 0 2 0 1 1 0 2
+Donwlinks 2 0 1 1 0 1 0 2
+Charging 1 37 39 38 72 24 22 34
+Cost,m/s 441.25 0.00 0.00 0.00 0.00 16.37 0.00 291.96
+downlinkinstageeight,indicatingthatthisphenomenonisaresultofthevisibilityprofilesofthetargetandground
+stations,whereinsatellitefourhasvisibilityofatargetneartheendofthetimehorizonwithnovisibilityofground
+stationsafterward. SincetheoverallnumberofobservationsconductedbytheREOSSP-RHPislessthanthatofthe
+REOSSP-Exact,theextradataretainedbyeachsatelliteis120.00,17.50,15.00,and10.00MBforsatellites4through
+1,respectively,asreflectedinFig.9a. AnadditionalphenomenonoccursinFig.9a,whereindatathatisobservedby
+eachsatelliteisdownlinkedtoagroundstationmuchsoonerthanintheREOSSP-ExactandEOSSP,aresultofthe
+objectivetodownlinkandobservebeingoptimizedforeachgroupoftwostagesratherthanovertheaccumulationofthe
+entiretimehorizon. AsimilarphenomenonoccursinFig.9b,whereinthechargingofeachsatelliteismaintainedwithin
+eachsubproblem,leadingtoaslightlymoresporadicchargingschedulewhenappended. Finally,theoverallcostofthe
+optimalREOSSP-RHPscheduleissubstantiallymoreexpensivethanthatoftheREOSSP-Exact,aresultoftherather
+small𝐿 =1stagelookaheadincentivizingeffectiveyetexpensivemaneuverstooccuratthestartoftheschedule. Thisis
+displayedwellinTable6,whereeachsatelliteconsumesonaverage79.01%ofthemaneuverbudgetwithinthefirsttwo
+maneuvers. Overall,theoptimalREOSSP-RHPscheduleconsumes2.89km/s,96.43%ofthetotalbudgetprovided,
+34
+--- PAGE 35 ---
+foratotalof15transfers(of32possibilitiesfortransfers),ofwhichfourareaplanechange(twoofwhichareinclination
+lowering,oneofwhichisRAANlowering,andoneofwhichisRAANraising). Eachsatellite,listedinorder1through
+4,consumed745.76m/s,686.42m/s,711.10m/s,and749.58m/s,whichis99.43%,91.52%,94.81%,and99.94%
+ofeachindividualbudget,respectively.
+Overall,thehighlyadaptablenatureoftheREOSSP-ExactandREOSSP-RHPenabledthroughreconfigurability,
+a diverse set of orbital slots including plane and phase changes, and the reduction in computation time via the
+REOSSP-RHPalgorithmallowsforperformancemuchhigherthanthatoftheEOSSP.Thiseffectivenessisshown
+throughtheperformanceofsignificantlymoreobservationsanddownlinkoccurrencesbyeachsatelliterelativetothe
+EOSSP,whiletheREOSSP-RHPperformsmoreexpensiveorbitalmaneuverswhilecompletingcomputationsmuch
+faster. Additionally,allthreeschedulingalgorithmsreturnaresultantschedulethatobeysallconstraints,including
+powerconsumption,charging,datamanagement,andorbitalmaneuverbudgetlimitations.
+VI.Conclusions
+This paper developed a mathematical formulation to integrate constellation reconfigurability into the EOSSP
+through the use of MILP and previous research on the MCRP [26–28, 32, 33]. The REOSSP developed herein
+optimizesthescheduleofacooperativesatelliteconstellationcapableoforbitalmaneuveringsuchthatthenumberof
+observationsandsubsequentdatadownlinkoccurrencesismaximized,withahigherinfluencefromthenumberof
+downlinkoccurrences. Additionally,theREOSSPconsidersavailabledatastorage,batterystorage,andapropellant
+budgetfororbitalmaneuvers,whileschedulingthetaskstoobservetargets,downlinkobserveddata,chargeonboard
+batteries,andperformconstellationreconfigurationatpredeterminedstages. Furthermore,theREOSSPissolvedvia
+theREOSSP-RHP,whichsignificantlyimprovescomputationalruntimecomparedtotheREOSSPbutatthecostof
+yieldingsuboptimalsolutions. ThenovelMILPformulationoftheREOSSPandtheREOSSP-RHPallowsflexible
+implementation,includingtheabilitytoincludetrajectoryoptimizationfororbitalmaneuversandoptimalsolutions
+throughcommercialsolvers. Inconjunction,abaselineEOSSPisdevelopedandutilizedforthecomparison.
+ThecomputationalexperimentsconductedinSec.VdemonstratethecapabilityoftheREOSSP-Exacttooutperform
+theEOSSPinavarietyofscenarios,confirmingthehypothesissetforthbypreviouscomparativeresearch[28,32,33].
+Within the random instances, meant to demonstrate the flexibility of the framework under various parameters, the
+averagepercentimprovementoftheREOSSP-ExactandREOSSP-RHPovertheEOSSPis101.80%and78.06%
+in terms of the objective function value, respectively. When applied to Hurricane Sandy the REOSSP-Exact and
+REOSSP-RHPexceedtheperformanceoftheEOSSPby288.00%and192.00%intermsoftheobjectivefunction
+value,respectively,and300.00%and200.00%intermsofthefigureofmerit,respectively. WhiletheREOSSP-RHP
+doesnotobtainashigh-qualityresultsastheREOSSP-Exact,intheeventthattheproblemscaleissufficientlylargeso
+astocausetheREOSSP-Exacttobeunabletoconvergetoafeasiblesolution,theREOSSP-RHPcanobtainanoptimal
+35
+--- PAGE 36 ---
+solutiontoeachsubproblemwhilestillsignificantlyoutperformingtheEOSSP.Boththerandominstancesandthe
+casestudydepicttheperformanceincreaseprovidedbytheREOSSP-ExactandREOSSP-RHP,whilesimultaneously
+obeyingalloperationalandphysicalconstraints. Overall,theimplementationofconstellationreconfigurabilityprovides
+agreaterthroughputofobserveddatathanthestandardEOSSP.
+Futureresearchintotheconceptofconstellationreconfigurabilityimplementedinaschedulingformatmaytake
+many forms. Firstly, the scope of this paper is restricted to high-thrust orbital maneuver trajectory optimization,
+whereas low-thrust maneuvers may allow for a lower operational cost of such a reconfigurable constellation. As
+such,theimplementationofvariouslow-thrusttrajectoryoptimizationtheories,suchasthoseinRefs.[53,54],may
+resultinanincreasedlevelofperformanceabovethebaselinewithlessexpensiveorbitalmaneuvers. Secondly,all
+schedulingproblemsformulatedinthispaperassumedeterministiccharacteristics,whilemanynaturaldisastersor
+otherobservableplanetaryphenomenaareoftenstochastic. Therefore,theimplementationofstochasticprogramming
+similar to that in Ref. [55] to the scheduling problems developed in this paper may more accurately represent the
+stochastic nature of natural disaster targets. Thirdly, the work in this paper focuses heavily on the REOSSP and
+constellationreconfigurabilityasawhole,whilepreviousworkinRefs.[32,33]additionallyconsiderssatelliteagility,
+thuscontributingtothepotentialofasimilarAEOSSPformulationtobedevelopedandusedforfurtherbenchmarking
+ofsatelliteagilityagainstconstellationreconfigurability. Finally,thefurthercomparisonofasmallconstellationof
+maneuverable satellites against a much larger fixed constellation of either nadir-directional or agile satellites may
+additionallyproveinsightful.
+AppendixA:ProofofFormulationEquivalencewithNoOrbitalManeuvers
+TheEOSSPandREOSSParebasedonthesameprinciples,suchthattheonlydifferencesliewithintheorbital
+maneuverability,whereintheREOSSPcontributesthepropertiesofthecurrentlyoccupiedorbitalslots. Suchproperties
+includethevisibilityoftaskprioritiesandthebatteryrequiredtoperformorbitalmaneuvers,𝐵 .
+recon
+Theorem1: Let𝑐 m 𝑘 ax =0,∀𝑘 ∈K intheREOSSP,then𝑧 𝐸 = 𝑧 𝑅 .
+Proof: SupposethatfortheEOSSPandREOSSP,allconstantparameterssuchasΔ𝑡 or𝐾,areidentical. Notethat
+eachstagealignssequentiallysuchthat𝑡 ∈ T𝑠 oftheREOSSPcorrespondsto𝑡+(𝑠−1)𝑇𝑠 ∈ T oftheEOSSP,as
+reflectedinFig.4. Thissequentialalignmentalsoappliestothevisibilityparameters𝑉𝑠𝑘 ,𝐺𝑠𝑘 ,and𝐻𝑠𝑘. Additionally,
+𝑡𝑗𝑝 𝑡𝑗𝑔 𝑡𝑗
+theinitialorbitalpositionsofeachsatellite(thoseappliedtotheEOSSP)applytoasingleorbitalslotoptionindex 𝑗.
+Finally,thenumberofstages𝑆andthenumberoforbitalslots𝐽𝑠𝑘,∀𝑠 ∈S\{0},∀𝑘 ∈K mayremaingeneric.
+Firstly,constraints(10c)restricttheorbitalmaneuversofsatellitestothosewithacost𝑐𝑠𝑘 whoseaccumulation
+𝑖𝑗
+doesnotexceed𝑐𝑘 . Since𝑐𝑘 =0,∀𝑘 ∈K,onlythemaneuversfromorbitalslot𝑖 ∈ J𝑠−1,𝑘 toorbitalslot 𝑗 ∈ J𝑠𝑘
+max max
+where𝑐𝑠𝑘 =0,whichonlyoccursif𝑖 = 𝑗,∀𝑘 ∈K,∀𝑠 ∈S\{0}bydefinition,arefeasible. Furthermore,atstage𝑠 =1,
+𝑖𝑗
+theorbitalslot𝑖 ∈ J0𝑘 isasingletonsetoftheinitialorbitalpositionsforeachsatellite(thoseappliedtotheEOSSP).
+36
+--- PAGE 37 ---
+As such, the satellites of the EOSSP and REOSSP are located in the same orbital slot throughout the entire time
+horizon. Finally,theassignment𝑖 ∈ J0𝑘,∀𝑘 ∈ K and 𝑗 =𝑖, 𝑗 ∈ J𝑠𝑘,∀𝑘 ∈ K,∀𝑠 ∈ S\{0}obeysconstraints(10a)
+and (10b) since only orbital slot 𝑖 is occupied in all stages 𝑠 ∈ S such that 𝑥𝑠𝑘 = 1,∀𝑘 ∈ K,∀𝑠 ∈ S \ {0} and
+𝑖𝑖
+𝑥𝑠𝑘 =0,∀𝑘 ∈K,∀𝑠 ∈S\{0}, 𝑗 ≠𝑖. Sinceeachsatellitecannotperformanorbitalmaneuver,itcanbeassumedthat
+𝑖𝑗
+𝐵
+recon
+=0,thuseliminatingthepossibledifferenceinbatterypowerconsumption.
+Secondly,constraints(11a–11c)assignthevisibilityoftargets,groundstations,andthesun,respectively. Since
+𝑖 ∈ J0𝑘,∀𝑘 ∈KistheorbitalpositionappliedtotheEOSSP,𝑖 = 𝑗,∀𝑘 ∈K,∀𝑠 ∈S\{0},andthevisibilityparameters
+alignsequentially,thevisibilityoftargets,groundstations,andthesunareidenticallyassignedtotheEOSSPand
+REOSSP. Furthermore, the VTWs for the tasks oftarget observation, data downlinkto ground stations, and solar
+chargingarealsoidenticallyassigned. Additionally,sinceobjectivefunction(2)oftheEOSSPandobjectivefunction(8)
+of the REOSSP are functionally equivalent, and the VTWs of each task are identical, the assignment of tasks is
+subsequentlyidentical. Inasimilarmannertotheassignmentoforbitalslots,constraints(11d)areinherentlyobeyedas
+theidenticaltaskassignmentobeysconstraints(4d).
+Thirdly,constraints(12)trackandrestrictthedatastorageofeachsatellitetowithinthebounds 𝐷 and 𝐷
+min max
+dependentupontheoccurrenceoftargetobservationanddatadownlinktogroundstations. Sincethevaluesof𝐷
+comm
+and 𝐷
+obs
+areconstant,eachstageissequentiallyaligned,andtaskoccurrenceisidenticalbetweentheEOSSPand
+REOSSP,constraints(12c)and(12d)areinherentlyidenticaltoconstraints(5b)and(5c),respectively,andarethusly
+obeyed. Additionally,constraints(12a)and(12b)contributethecurrenttimesteptaskperformancetothesubsequent
+timestepdatastoragevalue,whereinconstraints(12a)applywithineachstageandconstraints(12b)applybetweeneach
+stage. Assuch,constraints(12a)and(12b)operateidenticallytoconstraints(5a).
+Fourthly,constraints(13)and(14)trackandrestrictthebatterystorage,respectively,ofeachsatellitetowithin
+thebounds𝐵 and𝐵 dependentupontaskperformance;theconsiderationoforbitalmaneuversmayberemoved
+min max
+throughtheassumptionthat 𝐵 recon = 0. Sincethevaluesof 𝐵 comm , 𝐵 charge , 𝐵 obs ,and 𝐵 time areconstant,eachstage
+issequentiallyaligned,andtaskoccurrenceisidentical,constraints(14a)areinherentlyidenticaltoconstraints(6b)
+andarealsoobeyed. Asanaside,since𝐵 recon =0,constraints(14d)simplifyto𝐵 m 𝑘 ax ≥0,∀𝑘 ∈ K whichisimplied,
+and constraints (14c) simplify to 𝑏 𝑇 𝑠𝑘 𝑠 −(cid:205) 𝑝∈P 𝐵 obs 𝑦 𝑇 𝑠𝑘 𝑠𝑝 −(cid:205) 𝑔∈G 𝐵 comm 𝑞 𝑇 𝑠𝑘 𝑠𝑔 − 𝐵 time ≥ 0,∀𝑠 ∈ S \{0,𝑆},∀𝑘 ∈ K.
+With these simplifications, constraints (14b) and (14c) function similarly to constraints (12a) and (12b) in that
+both contribute the current time step task performance to the subsequent time step battery storage value within
+and between each stage, respectively. As such, constraints (14b) and (14c) operate identically to constraints (6c).
+Furthermore,constraints(13c)simplifyto𝑏1
+1
+𝑘 = 𝐵
+m
+𝑘
+ax
+,∀𝑘 ∈K,anassumptionoftheEOSSP,andconstraints(13b)
+simplify to 𝑏 1 𝑠+1,𝑘 = 𝑏 𝑇 𝑠𝑘 𝑠 + 𝐵 charge ℎ 𝑇 𝑠𝑘 𝑠 − (cid:205) 𝑝∈P 𝐵 obs 𝑦 𝑇 𝑠𝑘 𝑠𝑝 − (cid:205) 𝑔∈G 𝐵 comm 𝑞 𝑇 𝑠𝑘 𝑠𝑔 − 𝐵 time ,∀𝑠 ∈ S \ {0,𝑆},∀𝑘 ∈ K.
+Therefore,constraints(13a)and(13b)functionsimilarlytoconstraints(12a)and(12b),andthusoperateidenticallyto
+constraints(6a).
+37
+--- PAGE 38 ---
+Finally,objectivefunctions(8)and(2)computetheobjectivefunctionvalues𝑧 and𝑧 ,respectively. Sincetask
+𝑅 𝐸
+occurrenceisidenticalandeachstageissequentiallyaligned,thevaluesof𝑞𝑘 and𝑦𝑘 willbethesameasthevaluesof
+𝑡𝑔 𝑡𝑝
+𝑞𝑠𝑘 and𝑦𝑠𝑘 forsimilartimesteps𝑡+(𝑠−1)𝑇𝑠 ∈ T and𝑡 ∈ T𝑠,respectively. Assuch,sincethevalueof𝐶 isconstant,
+𝑡𝑔 𝑡𝑝
+theobjectivefunctionvalues𝑧 𝐸 = 𝑧 𝑅 . Therefore,theEOSSPandREOSSPreturnidenticalscheduleswithidentical
+objectivefunctionvaluesunderconditionswherein𝑐𝑘 =0,∀𝑘 ∈K. □
+max
+To further validate the above proof numerically, the case study in Sec. V.B is repeated with the parameter
+𝑐 m 𝑘 ax =0,∀𝑘 ∈K. Theresultsfollowthat𝑧 𝐸 = 𝑧 𝑅 =25sincethesatellitesoftheREOSSPwereforcedtoremainin
+theinitialconditionorbitalslotsfortheentiredurationoftheschedulehorizon. Assuch,theaboveproofisvalidated
+usingrealistictargetdataandthesameparametersandparametergenerationmethodsasthecasestudyinSec.V.B.
+AppendixB:AdditionalRandomInstanceResultsStatistics
+InadditiontothestatisticalinformationprovidedbytheboxchartsinSec.V.A,thepercentimprovementofthe
+REOSSP-ExactandREOSSP-RHPovertheEOSSP,aswellastheruntimeoftheEOSSP,REOSSP-Exact,and
+REOSSP-RHP,ineachinstance,isshownasbarchartsinFigs.10aandFig.10b,respectively. TheorderingofFigs.10a
+and10bisinascendingorderoftheREOSSP-RHPmetricfromlefttoright.
+n60
+150 im
+%
+,tn
+e m100
+,e
+m
+itn u 40
+e v o r la
+rp
+m
+i tn
+e c
+50
+n
+o ita
+tu
+p m
+20
+re
+P
+o
+C 0
+0
+1323211 4 198 5 6 9 162 2420113 1417107 12151822
+1 2 172122111918159 235 136 3 147 1024124 20168
+Random instance, ID
+Random instance, ID
+EOSSP REOSSP-Exact REOSSP-RHP
+REOSSP-Exact REOSSP-RHP
+(b)RuntimeoftheEOSSP,REOSSP-Exact,andREOSSP-
+(a)PercentimprovementovertheEOSSP
+RHP
+Fig.10 Resultsoftherandominstances.
+Acknowledgments
+The authors thank the anonymous reviewers for their contribution of feedback and insight, which has greatly
+improvedthequalityofthemanuscript. TheauthorsalsothanktheDepartmentofMechanical,MaterialsandAerospace
+EngineeringatWestVirginiaUniversityforprovidingthesupporttopublishthismanuscriptasopenaccess.
+38
+--- PAGE 39 ---
+References
+[1] Crocetti,L.,Forkel,M.,Fischer,M.,Jurečka,F.,Grlj,A.,Salentinig,A.,Trnka,M.,Anderson,M.,Ng,W.-T.,Kokalj,Z.,
+Bucur,A.,andDorigo,W.,“EarthobservationforagriculturaldroughtmonitoringinthePannonianBasin(Southeastern
+Europe): Current State and future directions,” Regional Environmental Change, Vol. 20, No. 4, 2020, p. 123. https:
+//doi.org/10.1007/s10113-020-01710-w.
+[2] Soldi,G.,Gaglione,D.,Forti,N.,Simone,A.D.,Daffinà,F.C.,Bottini,G.,Quattrociocchi,D.,Millefiori,L.M.,Braca,P.,Carniel,
+S.,Willett,P.,Iodice,A.,Riccio,D.,andFarina,A.,“Space-BasedGlobalMaritimeSurveillance.PartI:SatelliteTechnologies,”
+IEEEAerospaceandElectronicSystemsMagazine,Vol.36,No.9,2021,pp.8–28.https://doi.org/10.1109/MAES.2021.3070862.
+[3] Prakash,M.,Ramage,S.,Kavvada,A.,andGoodman,S.,“OpenEarthObservationsforSustainableUrbanDevelopment,”
+RemoteSensing,Vol.12,No.10,2020. https://doi.org/10.3390/rs12101646.
+[4] Chien, S., Mclaren, D., Doubleday, J., Tran, D., Tanpipat, V., and Chitradon, R., “Using Taskable Remote Sensing in a
+SensorWebforThailandFloodMonitoring,”JournalofAerospaceInformationSystems,Vol.16,No.3,2019,pp.107–119.
+https://doi.org/10.2514/1.I010672.
+[5] Parselia,E.,Kontoes,C.,Tsouni,A.,Hadjichristodoulou,C.,Kioutsioukis,I.,Magiorkinis,G.,andStilianakis,N.I.,“Satellite
+EarthObservationDatainEpidemiologicalModelingofMalaria,DengueandWestNileVirus: AScopingReview,”Remote
+Sensing,Vol.11,No.16,2019. https://doi.org/10.3390/rs11161862.
+[6] Cho,D.-H.,Kim,J.-H.,Choi,H.-L.,andAhn,J.,“Optimization-BasedSchedulingMethodforAgileEarth-ObservingSatellite
+Constellation,”JournalofAerospaceInformationSystems,Vol.15,No.11,2018,pp.611–626. https://doi.org/10.2514/1.I010
+620.
+[7] Herrmann,A.,andSchaub,H.,“ReinforcementLearningfortheAgileEarth-ObservingSatelliteSchedulingProblem,”IEEE
+TransactionsonAerospaceandElectronicSystems,Vol.59,No.5,2023,pp.5235–5247. https://doi.org/10.1109/TAES.2023.
+3251307.
+[8] Eddy, D., and Kochenderfer, M. J., “A Maximum Independent Set Method for Scheduling Earth-Observing Satellite
+Constellations,”JournalofSpacecraftandRockets,Vol.58,No.5,2021,pp.1416–1429. https://doi.org/10.2514/1.A34931.
+[9] Chatterjee,A.,andTharmarasa,R.,“RewardFactor-BasedMultipleAgileSatellitesSchedulingWithEnergyandMemory
+Constraints,” IEEE Transactions on Aerospace and Electronic Systems, Vol. 58, No. 4, 2022, pp. 3090–3103. https:
+//doi.org/10.1109/TAES.2022.3146115.
+[10] Chen,X.,Reinelt,G.,Dai,G.,andSpitz,A.,“Amixedintegerlinearprogrammingmodelformulti-satellitescheduling,”
+EuropeanJournalofOperationalResearch,Vol.275,No.2,2019,pp.694–707. https://doi.org/10.1016/j.ejor.2018.11.058.
+[11] Herrmann,A.P.,andSchaub,H.,“MonteCarlotreesearchmethodsfortheEarth-observingsatelliteschedulingproblem,”
+JournalofAerospaceInformationSystems,Vol.19,No.1,2022,p.70–82. https://doi.org/10.2514/1.i010992.
+39
+--- PAGE 40 ---
+[12] Lemaitre,M.,Verfaillie,G.,Jouhaud,F.,Lachiver,J.-M.,andBataille,N.,“Selectingandschedulingobservationsofagile
+satellites,”AerospaceScienceandTechnology,Vol.6,No.5,2002,pp.367–381.https://doi.org/10.1016/S1270-9638(02)01173-
+2.
+[13] Lee,K.,Kim,D.-J.,Chung,D.-W.,andLee,S.,“OptimalMissionPlanningforMultipleAgileSatellitesUsingModifiedDynamic
+Programming,”JournalofAerospaceInformationSystems,Vol.21,No.3,2024,pp.279–289.https://doi.org/10.2514/1.I011270.
+[14] Wang,X.,Han,C.,Zhang,R.,andGu,Y.,“SchedulingMultipleAgileEarthObservationSatellitesforOversubscribedTargets
+UsingComplexNetworksTheory,”IEEEAccess,Vol.7,June2019,pp.110,605–110,615. https://doi.org/10.1109/ACCESS.2
+019.2925704.
+[15] Kim,J.,Ahn,J.,Choi,H.-L.,andCho,D.-H.,“TaskSchedulingofAgileSatelliteswithTransitionTimeandStereoscopicImaging
+Constraints,”JournalofAerospaceInformationSystems,Vol.17,No.6,2020,pp.285–293. https://doi.org/10.2514/1.I010775.
+[16] Peng, G., Song, G., Xing, L., Gunawan, A., and Vansteenwegen, P., “An Exact Algorithm for Agile Earth Observation
+SatelliteSchedulingwithTime-DependentProfits,” Computers&OperationsResearch, Vol.120, Aug.2020, p.104946.
+https://doi.org/10.1016/j.cor.2020.104946.
+[17] deWeck,O.L.,Scialom,U.,andSiddiqi,A.,“Optimalreconfigurationofsatelliteconstellationswiththeauctionalgorithm,”
+ActaAstronautica,Vol.62,No.2,2008,pp.112–130. https://doi.org/10.1016/j.actaastro.2007.02.008.
+[18] Lee,H.,andHo,K.,“RegionalConstellationReconfigurationProblem:IntegerLinearProgrammingFormulationandLagrangian
+HeuristicMethod,”JournalofSpacecraftandRockets,Vol.60,No.6,2023,pp.1828–1845. https://doi.org/10.2514/1.A35685.
+[19] Paek,S.W.,Kim,S.,anddeWeck,O.,“OptimizationofReconfigurableSatelliteConstellationsUsingSimulatedAnnealing
+andGeneticAlgorithm,”Sensors,Vol.19,No.4,2019. https://doi.org/10.3390/s19040765.
+[20] Chen,Y.,Mahalec,V.,Chen,Y.,Liu,X.,He,R.,andSun,K.,“Reconfigurationofsatelliteorbitforcooperativeobservation
+usingvariable-sizemulti-objectivedifferentialevolution,”EuropeanJournalofOperationalResearch,Vol.242,No.1,2015,
+pp.10–20. https://doi.org/10.1016/j.ejor.2014.09.025.
+[21] Anderson, J. F., Cardin, M.-A., and Grogan, P. T., “Design and analysis of flexible multi-layer staged deployment for
+satellite mega-constellations under demand uncertainty,” Acta Astronautica, Vol. 198, Sept. 2022, p. 179–193. https:
+//doi.org/10.1016/j.actaastro.2022.05.022.
+[22] McGrath,C.,andMacdonald,M.,“Designofareconfigurablesatelliteconstellation,”66thInternationalAstronauticalCongress,
+IAC2015,InternationalAstronauticalFederation(IAF),Jerusalem,Israel,2015,pp.5981–5989.
+[23] Zuo,X.,Bai,X.,Xu,M.,Li,M.,Zhou,J.,Yu,L.,andZhang,J.,“SatelliteConstellationReconfigurationUsingSurrogate-Based
+Optimization,”JournalofAerospaceEngineering,Vol.35,No.4,2022,p.04022043.https://doi.org/10.1061/(ASCE)AS.1943-
+5525.0001438.
+40
+--- PAGE 41 ---
+[24] Lee,H.,andHo,K.,“ALagrangianRelaxation-BasedHeuristicApproachtoRegionalConstellationReconfigurationProblem,”
+AAS/AIAAAstrodynamicsSpecialistConference,2021,pp.1–20. AASPaper21-719.
+[25] Lee,H.,andHo,K.,“BinaryIntegerLinearProgrammingFormulationforOptimalSatelliteConstellationReconfiguration,”
+AAS/AIAAAstrodynamicsSpecialistConference,2020,pp.1–22. AASPaper20-498.
+[26] Lee,H.,Chen,H.,andHo,K.,“MaximizingObservationThroughputviaMulti-StageSatelliteConstellationReconfiguration,”
+AAS/AIAAAstrodynamicsSpecialistConference,2022,pp.1–19. AASPaper22-825.
+[27] Lee,H.,andLiu,Z.,“ANovelFormulationfortheMulti-StageSatelliteConstellationReconfigurationProblem: InitialResults,”
+33rdAAS/AIAASpaceFlightMechanicsMeeting,2023,pp.1–10. AASPaper23-273.
+[28] Lee,H.,WilliamsRogers,D.O.,Pearl,B.D.,Chen,H.,andHo,K.,“DeterministicMultistageConstellationReconfiguration
+UsingIntegerProgrammingandSequentialDecision-MakingMethods,”JournalofSpacecraftandRockets,Vol.62,No.1,
+2025,pp.206–222. https://doi.org/10.2514/1.A35990.
+[29] He, X., Li, H., Yang, L., and Zhao, J., “Reconfigurable Satellite Constellation Design for Disaster Monitoring Using
+Physical Programming,” International Journal of Aerospace Engineering, Vol. 2020, Sept. 2020, p. 8813685. https:
+//doi.org/10.1155/2020/8813685.
+[30] McGrath, C. N., and Macdonald, M., “General Perturbation Method for Satellite Constellation Reconfiguration Using
+Low-Thrust Maneuvers,” Journal of Guidance, Control, and Dynamics, Vol. 42, No. 8, 2019, pp. 1676–1692. https:
+//doi.org/10.2514/1.G003739.
+[31] Morgan,S.J.,McGrath,C.N.,anddeWeck,O.L.,“Optimizationofmultispacecraftmaneuversformobiletargettrackingfrom
+lowEarthorbit,”JournalofSpacecraftandRockets,Vol.60,No.2,2023,p.581–590. https://doi.org/10.2514/1.a35457.
+[32] Pearl,B.,Gold,L.,andLee,H.,“ComparingtheEffectivenessofAgilityandReconfigurabilityinEarthObservationSatellite
+SystemsforDisasterResponse,”AAS/AIAAAstrodynamicsSpecialistConference,2023,pp.1–18. AASPaper23-191.
+[33] Pearl,B.D.,Gold,L.P.,andLee,H.,“BenchmarkingAgilityandReconfigurabilityinSatelliteSystemsforTropicalCyclone
+Monitoring,”JournalofSpacecraftandRockets,Vol.62,No.4,2025,pp.1138–1151. https://doi.org/10.2514/1.A36177.
+[34] Candela,A.,Swope,J.,andChien,S.A.,“DynamicTargetingtoImproveEarthScienceMissions,”JournalofAerospace
+InformationSystems,Vol.20,No.11,2023,pp.679–689. https://doi.org/10.2514/1.I011233.
+[35] Swope,J.,Chien,S.,Bosch-Lluis,X.,Dunkel,E.,Yue,Q.,Ogut,M.,Ramos,I.,Kangaslahti,P.,Deal,W.,andCooke,C.,
+“StormClassificationandDynamicTargetingforaSmartIceCloudSensingSatellite,”JournalofAerospaceInformation
+Systems,Vol.21,No.12,2024,pp.958–971. https://doi.org/10.2514/1.I011318.
+[36] Wang, X., Zhao, F., Shi, Z., and Jin, Z., “Deep Reinforcement Learning-Based Periodic Earth Observation Scheduling
+for Agile Satellite Constellation,” Journal of Aerospace Information Systems, Vol. 20, No. 8, 2023, pp. 508–519. https:
+//doi.org/10.2514/1.I011209.
+41
+--- PAGE 42 ---
+[37] Morgan, D., Chung, S.-J., and Hadaegh, F. Y., “Model Predictive Control of Swarms of Spacecraft Using Sequential
+Convex Programming,” Journal of Guidance, Control, and Dynamics, Vol. 37, No. 6, 2014, pp. 1725–1740. https:
+//doi.org/10.2514/1.G000218.
+[38] Pearl,B.D.,Miller,J.M.,andLee,H.,“DevelopingtheReconfigurableEarthObservationSatelliteSchedulingProblem,”
+AIAASCITECH2025Forum,2025,pp.1–34. https://doi.org/10.2514/6.2025-0589.
+[39] Huang,Y.,Mu,Z.,Wu,S.,Cui,B.,andDuan,Y.,“RevisingtheObservationSatelliteSchedulingProblemBasedonDeep
+ReinforcementLearning,”RemoteSensing,Vol.13,No.12,2021. https://doi.org/10.3390/rs13122377.
+[40] MATLAB,24.2.0.2806996(R2024b)Update3,TheMathWorksInc.,Natick,Massachusetts,2024.
+[41] Löfberg,J.,“YALMIP:atoolboxformodelingandoptimizationinMATLAB,”2004IEEEInternationalConferenceon
+RoboticsandAutomation(IEEECat.No.04CH37508),InstituteofElectricalandElectronicsEngineers,NewYork,2004,pp.
+284–289. https://doi.org/10.1109/CACSD.2004.1393890.
+[42] Maccherone,B.,andFrazier,S.,“ModerateResolutionImagingSpectroradiometer,”https://modis.gsfc.nasa.gov/about/specific
+ations.php,2015. LastaccessedFebruary03,2025.
+[43] eoPortal,“DMC-3(disastermonitoringconstellation-3),”https://www.eoportal.org/satellite-missions/dmc-3,052012. Last
+accessedFebruary03,2025.
+[44] Bradhorst,H.W.,“Technologies,”https://nss.org/settlement/nasa/spaceresvol2/technologies.html,1985. Lastaccessed
+February03,2025.
+[45] Woodburn,J.,“Effectsofeclipseboundarycrossingsonthenumericalintegrationoforbittrajectories,”AstrodynamicsSpecialist
+Conference,2000. https://doi.org/10.2514/6.2000-4027.
+[46] Vallado,D.,FundamentalsofAstrodynamicsandApplications,Spacetechnologylibrary,MicrocosmPress,Torrance,CA,
+2022,Chap.6,pp.321–428.
+[47] Diakakis,M.,Deligiannakis,G.,Katsetsiadou,K.,andLekkas,E.,“HurricaneSandymortalityintheCaribbeanandContinental
+NorthAmerica,”DisasterPreventionandManagement,Vol.24,No.1,2015,p.132–148. https://doi.org/10.1108/dpm-05-
+2014-0082.
+[48] NationalHurricaneCenter,“CostliestU.S.tropicalcyclonestablesupdated,”https://www.nhc.noaa.gov/news/UpdatedCostliest
+.pdf,012018. LastaccessedFebruary03,2025.
+[49] WeatherUnderground,“HurricaneArchive,”https://www.wunderground.com/hurricane/archive,2024. LastaccessedFebruary
+03,2025.
+[50] USDepartmentofCommerce,andNOAA,“Tropicaldefinitions,”https://www.weather.gov/mob/tropical_definitions,052022.
+LastaccessedFebruary03,2025.
+42
+--- PAGE 43 ---
+[51] EuropeanSpaceAgency,“GEOSAT-1Overview,”https://earth.esa.int/eogateway/missions/geosat-1/description,2024. Last
+accessedFebruary03,2025.
+[52] Nag,S.,LeMoigne,J.,Miller,D.W.,anddeWeck,O.,“AframeworkfororbitalperformanceevaluationinDistributedSpace
+MissionsforEarthObservation,”2015IEEEAerospaceConference,2015. https://doi.org/10.1109/aero.2015.7119227.
+[53] Sims,J.,andFlanagan,S.,“PreliminaryDesignofLow-ThrustInterplanetaryMissions,”AdvancesintheAstronauticalSciences,
+Vol.103,2000.
+[54] Shannon, J. L., Ozimek, M. T., Atchison, J. A., and Hartzell, C. M., “Q-Law Aided Direct Trajectory Optimization
+of Many-Revolution Low-Thrust Transfers,” Journal of Spacecraft and Rockets, Vol. 57, No. 4, 2020, pp. 672–682.
+https://doi.org/10.2514/1.A34586.
+[55] Hoskins,A.B.,“OptimizedObservationofanAtLaunchUnknownGroundTargetWithinSensorFieldofView,”2024IEEE
+AerospaceConference,2024,pp.1–9. https://doi.org/10.1109/AERO58975.2024.10521384.
+43
